@@ -1,0 +1,21 @@
+/* PPI Guidebook — Refined Academic Style */
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;0,700;1,400&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --bg: #f7f3ec;
+  --bg2: #ede8df;
+  --bg3: #e0d9ce;
+  --ink: #2a2318;
+  --ink2: #5a5040;
+  --ink3: #8a7d6a;
+  --accent: #c2622a;
+  --accent2: #7a9e5a;
+  --accent3: #3a6e8c;
+  --accent4: #8a4ea8;
+  --border: #ccc5b5;
+  --card: #fffdf8;
+  --shadow: rgba(42,35,24,0.12);
+  --radius: 8px;
+}
+
+*,

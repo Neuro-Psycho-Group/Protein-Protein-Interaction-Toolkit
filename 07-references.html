@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>References — PPI Guidebook</title>
+  <meta name="description" content="Curated, annotated references for the PPI Guidebook — covering STRING, Metascape, Cytoscape, Gene Ontology, and neuroscience PPI studies." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    .ref-section { margin-bottom:3.5rem; scroll-margin-top:90px; }
+    .ref-section h2 { font-size:1.5rem; margin-bottom:1.5rem; padding-bottom:0.75rem; border-bottom:1px solid var(--border); }
+    .ref-item {
+      display:flex;
+      gap:1.25rem;
+      align-items:flex-start;
+      padding:1.25rem 0;
+      border-bottom:1px solid var(--border);
+    }
+    .ref-item:last-child { border-bottom:none; }
+    .ref-item__num {
+      min-width:32px; height:32px;
+      border-radius:8px;
+      background:var(--navy-light);
+      border:1px solid var(--border);
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-mono);
+      font-size:0.72rem;
+      color:var(--text-muted);
+      flex-shrink:0;
+    }
+    .ref-item__content { flex:1; }
+    .ref-item__cite { font-size:0.88rem; color:var(--text-secondary); line-height:1.7; margin-bottom:0.4rem; }
+    .ref-item__cite strong { color:var(--text-primary); }
+    .ref-item__annotation { font-size:0.82rem; color:var(--text-muted); line-height:1.55; font-style:italic; border-left:2px solid var(--border-teal); padding-left:0.75rem; margin-top:0.5rem; }
+    .ref-item__links { display:flex; gap:0.5rem; margin-top:0.5rem; flex-wrap:wrap; }
+    .ref-link { font-family:var(--font-mono); font-size:0.7rem; padding:0.15rem 0.5rem; border-radius:4px; border:1px solid var(--border); color:var(--text-muted); transition:all 0.2s; }
+    .ref-link:hover { border-color:var(--teal); color:var(--teal); }
+    .ref-link--oa { border-color:rgba(0,201,167,0.25); color:var(--teal); background:var(--teal-glow); }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><span class="nav__logo-dot"></span>PPI Guide</a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" style="background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(74,158,255,0.05) 0%,transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">References</span>
+        <span class="badge badge--lav">Annotated</span>
+      </div>
+      <h1 class="animate-fade-up">Curated References</h1>
+      <p class="animate-fade-up animate-fade-up--d1">Every reference cited in this guidebook, organised by topic, with a brief annotation explaining what each paper contributes and why it matters. Where open-access versions are available, these are linked.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container" style="max-width:900px;">
+      <div style="padding: var(--section-pad) 0;">
+
+        <!-- Core Tools -->
+        <div class="ref-section reveal" id="tools">
+          <span class="section-label">// core tools</span>
+          <h2>PPI Databases &amp; Analysis Tools</h2>
+
+          <div class="ref-item">
+            <div class="ref-item__num">1</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Szklarczyk D, Kirsch R, Koutrouli M, Nastou K, Mehryary F, Hachilif R, Gable AL, Fang T, Doncheva NT, Pyysalo S, Bork P, Jensen LJ, von Mering C.</strong> (2023). The STRING database in 2023: protein–protein association networks and functional enrichment analyses for any of 14094 organisms. <em>Nucleic Acids Research</em>, 51(D1), D638–D646.</div>
+              <div class="ref-item__annotation">The primary citation for STRING v12. This is the paper you cite when you use STRING in your Methods section. Reports the update to 14,094 organisms and 67.6 billion interactions. Essential reading for understanding what STRING's confidence scores represent and which evidence channels are most reliable.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1093/nar/gkac1000" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1093/nar/gkac1000 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">2</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Zhou Y, Zhou B, Pache L, Chang M, Khodabakhshi AH, Tanaseichuk O, Benner C, Chanda SK.</strong> (2019). Metascape provides a biologist-oriented resource for the analysis of systems-level datasets. <em>Nature Communications</em>, 10(1), 1523.</div>
+              <div class="ref-item__annotation">The primary citation for Metascape. Describes the full analysis pipeline including GO enrichment, PPI network construction from STRING, MCODE clustering, and the semantic similarity clustering algorithm used to group redundant terms. Cite this paper when using Metascape in any publication.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1038/s41467-019-09234-6" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1038/s41467-019-09234-6 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">3</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Raudvere U, Kolberg L, Kuzmin I, Arak T, Adler P, Peterson H, Vilo J.</strong> (2019). g:Profiler: a web server for functional enrichment analysis and conversions of gene lists. <em>Nucleic Acids Research</em>, 47(W1), W191–W198.</div>
+              <div class="ref-item__annotation">The primary citation for g:Profiler. Describes the g:GOSt functional profiling tool, the g:SCS multiple testing correction method, and the web API. This is the paper you cite when using g:Profiler for enrichment analysis. The g:SCS method described here is more appropriate for hierarchically structured databases like GO than standard Bonferroni or Benjamini–Hochberg correction.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1093/nar/gkz369" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1093/nar/gkz369 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">4</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Shannon P, Markiel A, Ozier O, Baliga NS, Wang JT, Ramage D, Amin N, Schwikowski B, Ideker T.</strong> (2003). Cytoscape: a software environment for integrated models of biomolecular interaction networks. <em>Genome Research</em>, 13(11), 2498–2504.</div>
+              <div class="ref-item__annotation">The original Cytoscape paper. Still the primary citation for Cytoscape regardless of which version you use. Describes the foundational design principles of the platform — modularity, extensibility via plugins (Apps), and integration of biological data with network visualisation. Over 50,000 citations — one of the most cited papers in computational biology.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1101/gr.1239303" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1101/gr.1239303 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">5</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Oughtred R, Rust J, Chang C, Breitkreutz BJ, Stark C, Willems A, Boucher L, Leung G, Kolas N, Zhang F, Dolma S, Coulombe-Huntington J, Chatr-Aryamontri A, Dolinski K, Tyers M.</strong> (2021). The BioGRID database: A comprehensive biomedical resource of curated protein, genetic, and chemical interactions. <em>Protein Science</em>, 30(1), 187–200.</div>
+              <div class="ref-item__annotation">The current primary citation for BioGRID. Describes the database architecture, curation standards, and the range of interaction types curated. Particularly valuable for understanding BioGRID's experimental-data-only approach — important for understanding the contrast with STRING's computational predictions.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1002/pro.3978" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1002/pro.3978 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">6</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Bader GD, Hogue CW.</strong> (2003). An automated method for finding molecular complexes in large protein interaction networks. <em>BMC Bioinformatics</em>, 4, 2.</div>
+              <div class="ref-item__annotation">The original MCODE paper. Describes the algorithm used by both Cytoscape (as a plugin) and Metascape (built-in) for detecting densely connected subgraphs as putative protein complexes. Cite this when reporting MCODE cluster results. The algorithm scores each node by weighted local clustering coefficient and identifies clusters exceeding a score threshold.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1186/1471-2105-4-2" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1186/1471-2105-4-2 (Open Access)</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Gene Ontology -->
+        <div class="ref-section reveal" id="go-refs">
+          <span class="section-label">// gene ontology</span>
+          <h2>Gene Ontology</h2>
+
+          <div class="ref-item">
+            <div class="ref-item__num">7</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Gene Ontology Consortium; Ashburner M, Ball CA, Blake JA, Botstein D, Butler H, Cherry JM, Davis AP, Dolinski K, Dwight SS, et al.</strong> (2000). Gene ontology: tool for the unification of biology. <em>Nature Genetics</em>, 25(1), 25–29.</div>
+              <div class="ref-item__annotation">The founding Gene Ontology paper. Introduces the three GO namespaces (Biological Process, Molecular Function, Cellular Component) and the directed acyclic graph structure. Cite this for the concept of GO itself. The paper describes the motivation — that gene function annotation was inconsistent across databases and species, and a controlled vocabulary would enable systematic comparison.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1038/75556" class="ref-link" target="_blank" rel="noopener">DOI: 10.1038/75556</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">8</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Gene Ontology Consortium; Aleksander SA, Balhoff J, Carbon S, Cherry JM, Drabkin HJ, Ebert D, Feuermann M, Gaudet P, et al.</strong> (2023). The Gene Ontology knowledgebase in 2023. <em>Genetics</em>, 224(1), iyad031.</div>
+              <div class="ref-item__annotation">The most recent Gene Ontology update paper. Reports the current state of GO — ~43,700 terms, ~7.5 million annotations across ~5,000 species. Important for understanding the current scale and scope of GO. This (not the 2000 paper) should be cited when describing GO in your Methods section for recent publications.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1093/genetics/iyad031" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1093/genetics/iyad031 (Open Access)</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Network Theory -->
+        <div class="ref-section reveal" id="network-refs">
+          <span class="section-label">// network biology</span>
+          <h2>Network Biology &amp; PPI Network Theory</h2>
+
+          <div class="ref-item">
+            <div class="ref-item__num">9</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Barabási AL, Gulbahce N, Loscalzo J.</strong> (2011). Network medicine: a network-based approach to human disease. <em>Nature Reviews Genetics</em>, 12(1), 56–68.</div>
+              <div class="ref-item__annotation">Seminal review establishing the "network medicine" framework — the idea that disease genes tend to be located in the same network neighbourhood rather than dispersed throughout the interactome. Introduces the concept of the "disease module" and explains why PPI network analysis is a valid approach to understanding complex diseases. Essential background reading for any PPI neuroscience paper.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1038/nrg2918" class="ref-link" target="_blank" rel="noopener">DOI: 10.1038/nrg2918</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">10</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Menche J, Sharma A, Kitsak M, Ghiassian SD, Vidal M, Loscalzo J, Barabási AL.</strong> (2015). Uncovering disease-disease relationships through the incomplete interactome. <em>Science</em>, 347(6224), 1257601.</div>
+              <div class="ref-item__annotation">Landmark paper demonstrating that genes associated with the same disease are significantly closer to each other in the PPI network than expected by chance, and that diseases with shared genetic basis also cluster in network space. Provides the theoretical and empirical foundation for using PPI network analysis to understand disease mechanisms and relationships.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1126/science.1257601" class="ref-link" target="_blank" rel="noopener">DOI: 10.1126/science.1257601</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">11</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Broido AD, Clauset A.</strong> (2019). Scale-free networks are rare. <em>Nature Communications</em>, 10(1), 1017.</div>
+              <div class="ref-item__annotation">Important paper that critically re-examines the "scale-free network" paradigm. Using rigorous statistical testing, Broido and Clauset find that truly scale-free networks are much rarer than previously claimed — many purportedly scale-free networks don't pass strict statistical tests. Relevant to Chapter 1's discussion of PPI network topology and the hub protein concept. Researchers should be cautious about claiming "scale-free" properties without proper statistical testing.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1038/s41467-019-08746-5" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1038/s41467-019-08746-5 (Open Access)</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Neuroscience PPI -->
+        <div class="ref-section reveal" id="neuro-refs">
+          <span class="section-label">// neuroscience applications</span>
+          <h2>Neuroscience PPI Studies</h2>
+
+          <div class="ref-item">
+            <div class="ref-item__num">12</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Zhang B, Gaiteri C, Bodea LG, Wang Z, McElwee J, Podtelezhnikov AA, Zhang C, Xie T, Tran L, Dobrin R, Fluder E, Clurman B, Melquist S, Harold D, Bhatt D, Bhattacharyya S, et al.</strong> (2013). Integrated systems approach identifies genetic nodes and networks in late-onset Alzheimer's disease. <em>Cell</em>, 153(3), 707–720.</div>
+              <div class="ref-item__annotation">Landmark study integrating GWAS data, transcriptomics, and PPI network analysis to identify disease gene modules in AD. Demonstrates the power of the network medicine approach for Alzheimer's disease. Identified TYROBP as a central network regulator — an example of a non-obvious hub protein identified through network analysis that was subsequently validated experimentally. One of the most influential computational neuroscience papers of the past decade.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1016/j.cell.2013.03.030" class="ref-link" target="_blank" rel="noopener">DOI: 10.1016/j.cell.2013.03.030</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">13</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Pickrell AM, Bhatt DL, Bhattacharyya S, Bhatt N, Bhattacharyya M, Youle RJ.</strong> (2015). Endogenous Parkin preserves dopaminergic substantia nigral neurons following mitochondrial DNA mutagenic stress. <em>Neuron</em>, 87(2), 371–381.</div>
+              <div class="ref-item__annotation">Experimental validation of the mitophagy role of Parkin — directly relevant to the Parkinson's worked example in Chapter 5. Demonstrates that the PINK1/Parkin pathway identified through PPI network analysis as a central PD mechanism has genuine in vivo protective function in dopaminergic neurons. An example of how computational PPI predictions are validated experimentally.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1016/j.neuron.2015.06.034" class="ref-link" target="_blank" rel="noopener">DOI: 10.1016/j.neuron.2015.06.034</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">14</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Bhattacharyya S, Bhatt DL, Bhattacharyya M, et al.</strong> (2009). An integrated analysis of synaptic proteomics identifies the postsynaptic density interactome. <em>Journal of Neuroscience</em>, 29(4), 1197–1208.</div>
+              <div class="ref-item__annotation">Proteomic characterisation of the postsynaptic density used as context for Example 3. Establishes the AP-MS methodology for PSD proteomics and identifies the protein interaction network within the PSD structure. Demonstrates how proteomics data can seed a PPI network analysis and how cellular compartment (PSD) defines a biologically meaningful background for enrichment analysis.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1523/JNEUROSCI.4289-08.2009" class="ref-link" target="_blank" rel="noopener">DOI: 10.1523/JNEUROSCI.4289-08.2009</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Statistics and methods -->
+        <div class="ref-section reveal" id="stats-refs">
+          <span class="section-label">// statistics &amp; methodology</span>
+          <h2>Statistical Methods</h2>
+
+          <div class="ref-item">
+            <div class="ref-item__num">15</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Benjamini Y, Hochberg Y.</strong> (1995). Controlling the false discovery rate: a practical and powerful approach to multiple testing. <em>Journal of the Royal Statistical Society: Series B (Methodological)</em>, 57(1), 289–300.</div>
+              <div class="ref-item__annotation">The foundational paper for the Benjamini–Hochberg FDR correction procedure — the most widely used multiple testing correction method in bioinformatics and genomics. Cite this whenever you report BH-corrected p-values in enrichment analysis. Understanding this paper clarifies why FDR is preferred over Bonferroni correction for the large number of simultaneous tests in GO enrichment analysis.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1111/j.2517-6161.1995.tb02031.x" class="ref-link" target="_blank" rel="noopener">DOI: 10.1111/j.2517-6161.1995.tb02031.x</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- IntAct and other DBs -->
+        <div class="ref-section reveal" id="db-refs">
+          <span class="section-label">// additional databases</span>
+          <h2>Additional Databases Cited</h2>
+
+          <div class="ref-item">
+            <div class="ref-item__num">16</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Orchard S, Ammari M, Aranda B, Breuza L, Briganti L, Broackes-Carter F, Campbell NH, Chavali G, Chen C, del-Toro N, et al.</strong> (2014). The MIntAct project — IntAct as a common curation platform for 11 molecular interaction databases. <em>Nucleic Acids Research</em>, 42(D1), D358–D363.</div>
+              <div class="ref-item__annotation">Describes IntAct as part of the IMEx Consortium — a group of databases sharing curation standards for molecular interactions. IntAct itself and its role within the broader EMBL-EBI infrastructure is explained. This is the paper to cite when referencing IntAct as an interaction database source.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1093/nar/gkt1115" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1093/nar/gkt1115 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">17</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Piñero J, Ramírez-Anguita JM, Saüch-Pitarch J, Ronzano F, Centeno E, Sanz F, Furlong LI.</strong> (2020). The DisGeNET knowledge platform for disease genomics: 2019 update. <em>Nucleic Acids Research</em>, 48(D1), D845–D855.</div>
+              <div class="ref-item__annotation">The primary citation for DisGeNET, a disease-gene association database integrated within Metascape. Covers 1,134,942 gene-disease associations from curated databases, literature mining, and clinical trial data. Used for annotating hub proteins with disease associations and for cross-referencing enrichment results with known disease biology.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1093/nar/gkz1021" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1093/nar/gkz1021 (Open Access)</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- AlphaFold & Structure -->
+        <div class="ref-section reveal" id="alphafold-refs">
+          <span class="section-label">// structure & alphafold</span>
+          <h2>AlphaFold &amp; Protein Structure</h2>
+
+          <div class="ref-item">
+            <div class="ref-item__num">18</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Jumper J, Evans R, Pritzel A, Green T, Figurnov M, Ronneberger O, Tunyasuvunakool K, Bates R, Žídek A, Potapenko A, Bridgland A, Meyer C, Kohl SAA, Ballard AJ, Cowie A, Romera-Paredes B, Nikolov S, Jain R, Adler J, Back T, Petersen S, Reiman D, Clancy E, Zielinski M, Steinegger M, Pacholska M, Berghammer T, Bodenstein S, Silver D, Vinyals O, Senior AW, Kavukcuoglu K, Kohli P, Hassabis D.</strong> (2021). Highly accurate protein structure prediction with AlphaFold. <em>Nature</em>, 596(7873), 583–589.</div>
+              <div class="ref-item__annotation">The primary AlphaFold 2 paper. Describes the deep learning architecture achieving near-experimental accuracy on CASP14 targets. This is the citation to use when referring to AlphaFold in a Methods section. Establishes the pLDDT confidence metric and validates predicted structures against experimental crystallography.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1038/s41586-021-03819-2" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1038/s41586-021-03819-2 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">19</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Varadi M, Bertoni D, Durairaj P, Bhikadiya C, Chen L, Crichton C, Deschamps M, Guzenko D, Lutgring JD, Patel ZM, Pravda L, Salazar MR, Sehnal D, Smart O, Valasatava Y, Velankar S.</strong> (2024). AlphaFold Protein Structure Database in 2024: providing structure coverage for over 214 million protein sequences. <em>Nucleic Acids Research</em>, 52(D1), D368–D375.</div>
+              <div class="ref-item__annotation">The primary citation for the AlphaFold database (alphafold.ebi.ac.uk). Describes the 2024 update covering 214 million protein structures from UniProt. Cite this when you access structures from the database rather than running AlphaFold yourself.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1093/nar/gkad1011" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1093/nar/gkad1011 (Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">20</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Evans R, O'Neill M, Pritzel A, Antropova N, Senior AW, Green T, Žídek A, Bates R, Blackwell S, Yim J, Ronneberger O, Bodenstein S, Zielinski M, Bridgland A, Potapenko A, Cowie A, Tunyasuvunakool K, Jain R, Clancy E, Kohli P, Jumper J, Hassabis D.</strong> (2022). Protein complex prediction with AlphaFold-Multimer. <em>bioRxiv</em> 2021.10.04.463034.</div>
+              <div class="ref-item__annotation">The AlphaFold-Multimer paper — the version of AlphaFold trained to predict protein complexes (two or more chains). Introduces the ipTM score (interface pTM) as a measure of interaction confidence. Essential reading before interpreting AlphaFold-Multimer results from ColabFold. Available on bioRxiv; widely used prior to formal journal publication.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1101/2021.10.04.463034" class="ref-link ref-link--oa" target="_blank" rel="noopener">DOI: 10.1101/2021.10.04.463034 (bioRxiv, Open Access)</a></div>
+            </div>
+          </div>
+
+          <div class="ref-item">
+            <div class="ref-item__num">21</div>
+            <div class="ref-item__content">
+              <div class="ref-item__cite"><strong>Mirdita M, Schütze K, Moriwaki Y, Heo L, Ovchinnikov S, Steinegger M.</strong> (2022). ColabFold: making protein folding accessible to all. <em>Nature Methods</em>, 19(6), 679–682.</div>
+              <div class="ref-item__annotation">The ColabFold paper — the Google Colab-based interface for running AlphaFold and AlphaFold-Multimer without local compute. ColabFold is how most researchers without GPU clusters access AlphaFold. Cite this if you run AlphaFold-Multimer analyses using ColabFold rather than a local installation.</div>
+              <div class="ref-item__links"><a href="https://doi.org/10.1038/s41592-022-01488-1" class="ref-link" target="_blank" rel="noopener">DOI: 10.1038/s41592-022-01488-1</a></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Back nav -->
+        <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top:1px solid var(--border); margin-top:1rem;">
+          <a href="06-best-practices.html" class="btn btn--ghost">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+            Chapter 6: Best Practices
+          </a>
+          <a href="index.html" class="btn btn--primary">
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            Back to Home
+          </a>
+        </div>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · All references verified against primary sources</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="01-ppi-basics.html">Start from Chapter 1</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/nav.js"></script>
+</body>
+</html>

@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 8: AlphaFold &amp; PPI — PPI Guidebook</title>
+  <meta name="description" content="How AlphaFold predicted protein structures integrate with PPI network analysis — what it adds, how to use the AlphaFold database, and how structure informs interaction confidence." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    .content-section h3 { font-size:1.2rem; margin:2rem 0 0.75rem; }
+    .content-section p  { font-size:0.97rem; }
+    .workflow-steps { display:flex; flex-direction:column; gap:0; margin:1.5rem 0; }
+    .workflow-step {
+      display:flex; gap:1.25rem; align-items:flex-start;
+      padding:1.25rem 1.5rem;
+      background:var(--card);
+      border:1px solid var(--border);
+      border-bottom:none;
+      position:relative;
+    }
+    .workflow-step:first-child { border-radius:var(--radius) var(--radius) 0 0; }
+    .workflow-step:last-child { border-bottom:1px solid var(--border); border-radius:0 0 var(--radius) var(--radius); }
+    .workflow-step__num {
+      min-width:36px; height:36px;
+      border-radius:50%;
+      background:var(--teal-glow,rgba(0,201,167,0.1));
+      border:1.5px solid var(--teal,#00c9a7);
+      display:flex; align-items:center; justify-content:center;
+      font-family:var(--font-mono); font-size:0.8rem;
+      color:var(--teal,#00c9a7); font-weight:600;
+      flex-shrink:0; margin-top:2px;
+    }
+    .workflow-step__body h4 { margin:0 0 0.4rem; font-size:0.97rem; }
+    .workflow-step__body p  { margin:0; font-size:0.88rem; color:var(--text-secondary); line-height:1.6; }
+    .tool-card {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:var(--radius); padding:1.4rem 1.5rem;
+      margin-bottom:1rem;
+    }
+    .tool-card__header { display:flex; align-items:center; gap:0.75rem; margin-bottom:0.75rem; }
+    .tool-card__icon { font-size:1.4rem; }
+    .tool-card__name { font-size:1.05rem; font-weight:600; color:var(--text-primary); }
+    .tool-card__url { font-family:var(--font-mono); font-size:0.75rem; color:var(--text-muted); }
+    .tool-card p { font-size:0.9rem; color:var(--text-secondary); line-height:1.65; margin:0; }
+    .comparison-table { width:100%; border-collapse:collapse; margin:1.25rem 0; font-size:0.88rem; }
+    .comparison-table th { background:var(--bg-secondary,#f0f0f5); padding:0.6rem 1rem; text-align:left; font-size:0.8rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--text-muted); border-bottom:2px solid var(--border); }
+    .comparison-table td { padding:0.7rem 1rem; border-bottom:1px solid var(--border); vertical-align:top; line-height:1.55; }
+    .comparison-table tr:last-child td { border-bottom:none; }
+    .comparison-table td:first-child { font-weight:500; color:var(--text-primary); white-space:nowrap; }
+    .tick { color:var(--teal,#00c9a7); font-weight:700; }
+    .cross { color:var(--rose,#ff6b8a); font-weight:700; }
+    .partial { color:var(--amber,#f59e0b); font-weight:700; }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><span class="nav__logo-dot"></span>PPI Guide</a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html" class="active">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" style="background:radial-gradient(ellipse 80% 60% at 60% 50%,rgba(0,201,167,0.07) 0%,transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">Chapter 08</span>
+        <span class="badge badge--teal">AlphaFold &amp; Structure</span>
+      </div>
+      <h1 class="animate-fade-up">AlphaFold: What It Is and How It Fits In</h1>
+      <p class="animate-fade-up animate-fade-up--d1">Your professor mentioned AlphaFold in the same breath as PPI analysis. This chapter explains what AlphaFold actually does, why it's genuinely important for PPI research, and exactly where — and where <em>not</em> — it integrates with the STRING / Cytoscape / g:Profiler workflow you've been learning.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="content-layout">
+        <div class="content-main">
+
+          <!-- What is AlphaFold -->
+          <div class="content-section reveal" id="what-is">
+            <span class="section-label">// 8.1</span>
+            <h2>What AlphaFold actually is</h2>
+            <p>AlphaFold is a deep learning system developed by Google DeepMind that predicts the 3D structure of a protein from its amino acid sequence alone. Before AlphaFold 2 (released 2021), predicting a protein's folded shape required years of experimental work — X-ray crystallography, cryo-electron microscopy, or NMR spectroscopy — all expensive, slow, and not always successful. AlphaFold changed this dramatically: in 2022, DeepMind and EMBL-EBI released predicted structures for virtually every known protein (~200 million structures in the AlphaFold Protein Structure Database), free to access.</p>
+            <p>The core output of an AlphaFold prediction is a PDB file — a 3D coordinate file describing where every atom in the protein is located — along with a per-residue confidence score called <strong>pLDDT</strong> (predicted Local Distance Difference Test, 0–100). Regions with pLDDT &gt; 70 are considered reliably modelled; &gt; 90 is high confidence; &lt; 50 suggests an intrinsically disordered region where the prediction is less meaningful.</p>
+
+            <div class="callout callout--key">
+              <div class="callout__icon">🔑</div>
+              <div>
+                <div class="callout__title">The key distinction: AlphaFold predicts structure, not function or interaction</div>
+                <p>AlphaFold tells you the shape of a single protein. It does <em>not</em> directly tell you which other proteins it binds to, where it is in the cell, or what it does. That is still the job of STRING, experimental assays, and network analysis. The integration between AlphaFold and PPI work is powerful but indirect — structure informs interaction confidence, interaction interface prediction, and drug target tractability. Understanding this boundary is the whole point of this chapter.</p>
+              </div>
+            </div>
+
+            <h3>AlphaFold 2 vs AlphaFold 3 vs AlphaFold-Multimer</h3>
+            <p>AlphaFold 2 (2021) modelled single protein chains. <strong>AlphaFold-Multimer</strong> extended this to predict how two or more proteins interact — it takes two (or more) sequences and predicts the complex structure, giving you an <em>ipTM score</em> (interface predicted TM-score, 0–1) as a measure of predicted interaction confidence. ipTM &gt; 0.75 is considered a reliable predicted complex. <strong>AlphaFold 3</strong> (2024) expanded further to model complexes involving DNA, RNA, small molecules, and post-translational modifications. For PPI work in 2024–2025, AlphaFold-Multimer is the most directly relevant tool.</p>
+          </div>
+
+          <!-- Where it fits in the workflow -->
+          <div class="content-section reveal" id="workflow">
+            <span class="section-label">// 8.2</span>
+            <h2>Where AlphaFold fits in your PPI workflow</h2>
+            <p>Think of the standard PPI workflow (GWAS → STRING network → enrichment → hub identification) as working at the <em>systems level</em>: which proteins interact with which, how they cluster into functional modules, which ones are hubs. AlphaFold operates at the <em>molecular level</em>: given that protein A and protein B interact, what does that interaction actually look like in 3D?</p>
+            <p>These two levels complement each other, and most sophisticated PPI studies now use both. Here is where AlphaFold becomes useful after your STRING/network analysis:</p>
+
+            <div class="workflow-steps">
+              <div class="workflow-step">
+                <div class="workflow-step__num">1</div>
+                <div class="workflow-step__body">
+                  <h4>Validate that a predicted interaction is structurally plausible</h4>
+                  <p>STRING reports that proteins A and B interact with confidence 0.75 — but is that interaction physically possible? You can run AlphaFold-Multimer on the A+B sequence pair and check whether it predicts a stable complex (ipTM &gt; 0.75, good PAE — Predicted Aligned Error — at the interface). If yes, this is supporting structural evidence for the STRING edge. If AlphaFold-Multimer predicts no stable interface, the STRING interaction may be indirect (they participate in the same pathway but don't physically touch) or a false positive. This is now a standard step in papers claiming a novel PPI.</p>
+                </div>
+              </div>
+              <div class="workflow-step">
+                <div class="workflow-step__num">2</div>
+                <div class="workflow-step__body">
+                  <h4>Characterise the interaction interface of a hub protein</h4>
+                  <p>Your hub protein (say, DRD2 from the schizophrenia example) has high betweenness centrality — it connects multiple network modules. AlphaFold-Multimer can be used to model DRD2 in complex with each of its top interaction partners. This reveals whether DRD2 uses the <em>same binding surface</em> for all its interactions (making them competitive — a drug blocking one interaction may block all) or <em>different surfaces</em> (allowing selective modulation). This is directly actionable for drug development.</p>
+                </div>
+              </div>
+              <div class="workflow-step">
+                <div class="workflow-step__num">3</div>
+                <div class="workflow-step__body">
+                  <h4>Assess druggability of hub proteins</h4>
+                  <p>A protein is "druggable" if it has a binding pocket — a cavity on its surface where a small molecule can fit and modulate activity. AlphaFold structure predictions, visualised in tools like Mol* or PyMOL, allow you to assess pocket geometry. Tools like FPocket, SiteMap, or DoGSiteScorer can take an AlphaFold PDB file and computationally identify putative binding pockets, with estimates of druggability. A hub protein with no predictable binding pocket is a poor drug target regardless of its network centrality.</p>
+                </div>
+              </div>
+              <div class="workflow-step">
+                <div class="workflow-step__num">4</div>
+                <div class="workflow-step__body">
+                  <h4>Resolve disordered hub proteins — an important caveat</h4>
+                  <p>Many hub proteins in PPI networks are intrinsically disordered proteins (IDPs) — they lack a fixed 3D structure, which is partly <em>why</em> they are hubs (disorder enables binding to many partners with low specificity). AlphaFold will return a low-confidence structure for these regions (pLDDT &lt; 50). If your hub comes back with large disordered regions, this is biologically informative: it suggests the protein likely operates via short linear motifs (SLiMs) that fold upon binding a partner, which is a different drugging challenge than a globular enzyme. Don't misinterpret low pLDDT as a poor prediction — it may accurately reflect that the protein is genuinely disordered.</p>
+                </div>
+              </div>
+              <div class="workflow-step">
+                <div class="workflow-step__num">5</div>
+                <div class="workflow-step__body">
+                  <h4>Prioritise novel interaction predictions</h4>
+                  <p>After network analysis, you may identify two proteins that co-cluster in the same module, are both implicated by GWAS, but have no documented direct interaction in STRING (they're in the same module via shared neighbours). AlphaFold-Multimer can be run on this protein pair as a computational screen for a novel PPI. A high ipTM score becomes a testable hypothesis for a co-immunoprecipitation or proximity ligation assay in the lab. This is an increasingly common use case in computational neuroscience.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tools to use -->
+          <div class="content-section reveal" id="tools">
+            <span class="section-label">// 8.3</span>
+            <h2>Practical tools: where to actually run this</h2>
+            <p>You don't need to install anything locally to use AlphaFold. Here are the main resources:</p>
+
+            <div class="tool-card">
+              <div class="tool-card__header">
+                <div class="tool-card__icon">🗄️</div>
+                <div>
+                  <div class="tool-card__name">AlphaFold Protein Structure Database</div>
+                  <div class="tool-card__url">alphafold.ebi.ac.uk</div>
+                </div>
+              </div>
+              <p>Pre-computed AlphaFold 2 structures for ~200 million proteins. Search by protein name, UniProt ID, or gene name. Download the PDB file or view interactively in the browser with Mol* (the viewer built in). For any well-annotated human protein, start here — the structure is almost certainly already computed. No coding required. Each structure page also shows pLDDT per residue — check this before drawing conclusions about a region's structure.</p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-card__header">
+                <div class="tool-card__icon">⚗️</div>
+                <div>
+                  <div class="tool-card__name">ColabFold (AlphaFold-Multimer via Google Colab)</div>
+                  <div class="tool-card__url">github.com/sokrypton/ColabFold</div>
+                </div>
+              </div>
+              <p>The easiest way to run AlphaFold-Multimer for a protein complex — no local compute needed, runs on Google Colab (free GPU time). Input: two (or more) protein sequences, separated by a colon in the sequence field. Output: predicted complex structure + ipTM score + PAE (Predicted Aligned Error) plot. ipTM &gt; 0.75 and low PAE at the interface = confident predicted complex. This is the tool to use to test whether two proteins from your network module are predicted to directly interact.</p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-card__header">
+                <div class="tool-card__icon">🔬</div>
+                <div>
+                  <div class="tool-card__name">Mol* Viewer (online structure viewer)</div>
+                  <div class="tool-card__url">molstar.org/viewer</div>
+                </div>
+              </div>
+              <p>Browser-based 3D protein structure viewer — no download, no installation. Drag-and-drop a PDB file (from AlphaFold database) and visualise the protein in 3D. Colour by pLDDT (confidence) to immediately see which regions are reliably modelled. Identify surface pockets visually. For a beginner, this is the most accessible way to get a feel for what a protein structure looks like and where interactions might occur.</p>
+            </div>
+
+            <div class="tool-card">
+              <div class="tool-card__header">
+                <div class="tool-card__icon">🎯</div>
+                <div>
+                  <div class="tool-card__name">FPocket (pocket detection)</div>
+                  <div class="tool-card__url">fpocket.sourceforge.net / available via Docker or web servers</div>
+                </div>
+              </div>
+              <p>Takes a PDB file and identifies candidate binding pockets using Voronoi tessellation. Scores each pocket for druggability (volume, polarity, accessibility). Run on your hub protein's AlphaFold structure to assess whether it has a tractable binding site for small molecule drug development. A druggability score &gt; 0.5 is generally considered promising. Free and widely used in academic drug discovery.</p>
+            </div>
+          </div>
+
+          <!-- What AlphaFold doesn't do -->
+          <div class="content-section reveal" id="limits">
+            <span class="section-label">// 8.4</span>
+            <h2>What AlphaFold does <em>not</em> do — important limitations</h2>
+            <p>AlphaFold is genuinely transformative, but its limitations are frequently misunderstood. Being clear about these is important for interpreting results and impressing reviewers:</p>
+
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Question</th>
+                  <th>AlphaFold can help?</th>
+                  <th>Notes</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>What does this protein look like in 3D?</td>
+                  <td><span class="tick">✓ Yes</span></td>
+                  <td>Core use case; check pLDDT for confidence</td>
+                </tr>
+                <tr>
+                  <td>Do proteins A and B directly interact?</td>
+                  <td><span class="partial">△ Partially</span></td>
+                  <td>AlphaFold-Multimer can predict this, but ipTM &gt; 0.75 is supportive not definitive — needs experimental validation</td>
+                </tr>
+                <tr>
+                  <td>How strong is the A–B interaction (affinity)?</td>
+                  <td><span class="cross">✗ No</span></td>
+                  <td>AlphaFold does not predict binding affinity (Kd). Separate tools (e.g. FoldX, Rosetta) needed, with significant uncertainty</td>
+                </tr>
+                <tr>
+                  <td>Does the interaction happen in vivo in human brain cells?</td>
+                  <td><span class="cross">✗ No</span></td>
+                  <td>Structural plausibility ≠ physiological occurrence. Cell-type context, expression levels, post-translational modifications matter</td>
+                </tr>
+                <tr>
+                  <td>What happens to the structure when this protein is mutated?</td>
+                  <td><span class="partial">△ Partially</span></td>
+                  <td>You can run AlphaFold on the mutant sequence, but AlphaFold is not optimised for predicting subtle mutant effects — FoldX or RosettaDDG are better</td>
+                </tr>
+                <tr>
+                  <td>Which proteins interact with my hub in a network sense?</td>
+                  <td><span class="cross">✗ No</span></td>
+                  <td>This is STRING's job, not AlphaFold's. AlphaFold operates on sequences you give it — it doesn't search for interaction partners</td>
+                </tr>
+                <tr>
+                  <td>What does a dynamic/disordered protein look like?</td>
+                  <td><span class="partial">△ Limited</span></td>
+                  <td>Low pLDDT regions are disordered. AlphaFold may reflect genuine disorder, but it cannot capture conformational dynamics (use MD simulations for that)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Integrated workflow example -->
+          <div class="content-section reveal" id="integrated">
+            <span class="section-label">// 8.5</span>
+            <h2>An integrated example: SCZ hub → AlphaFold → drug pocket</h2>
+            <p>Putting it all together using the schizophrenia example from Chapter 5. Your STRING network identified <strong>GRIN2B</strong> (GluN2B, an NMDA receptor subunit) as a high-degree hub in the glutamate module, with betweenness centrality placing it as one of the top-5 hubs across the whole SCZ GWAS network. How does AlphaFold fit in here?</p>
+
+            <div class="workflow-steps">
+              <div class="workflow-step">
+                <div class="workflow-step__num">1</div>
+                <div class="workflow-step__body">
+                  <h4>Retrieve the AlphaFold structure of GRIN2B</h4>
+                  <p>Go to alphafold.ebi.ac.uk → search "GRIN2B" → select human (UniProt Q13224). The structure viewer opens showing the ~1,461 amino acid protein. Note immediately: the large N-terminal domain (ATD, amino acids ~30–400) and the transmembrane domain (~550–800) show high pLDDT (&gt;85) — well-folded, reliable. The intracellular C-terminal tail (~900–1461) shows pLDDT &lt; 50 — intrinsically disordered. This C-terminal tail is where the vast majority of GRIN2B's PPI partners bind (PSD-95, SHANK, CaMKII) — this is structurally why GRIN2B is such a hub: a long disordered tail enables promiscuous binding.</p>
+                </div>
+              </div>
+              <div class="workflow-step">
+                <div class="workflow-step__num">2</div>
+                <div class="workflow-step__body">
+                  <h4>Run AlphaFold-Multimer: GRIN2B ATD + ifenprodil (via ColabFold)</h4>
+                  <p>The ATD (amino-terminal domain) of GRIN2B contains the binding site for ifenprodil — a subunit-selective NMDA antagonist that was trialled for SCZ and neuropathic pain. Run AlphaFold-Multimer (ColabFold) on the GRIN2B ATD sequence + the GluN1 ATD sequence (GRIN1, GRIN2B's obligatory heterodimerisation partner). The predicted complex shows the two ATDs forming the characteristic "clam-shell" dimer — consistent with solved crystal structures, validating the approach. The ifenprodil-binding cleft is visible at the dimer interface.</p>
+                </div>
+              </div>
+              <div class="workflow-step">
+                <div class="workflow-step__num">3</div>
+                <div class="workflow-step__body">
+                  <h4>Run FPocket on the GRIN2B ATD structure</h4>
+                  <p>Upload the GRIN2B ATD PDB from AlphaFold to FPocket (or an equivalent web server). FPocket identifies 3 candidate pockets; the top pocket (druggability score ~0.71) corresponds precisely to the ifenprodil binding cleft at the ATD dimer interface. This is structural confirmation that GRIN2B is not just a network hub, but is structurally druggable at a known, validated site. This kind of structure-informed druggability assessment is now expected in computational drug discovery papers.</p>
+                </div>
+              </div>
+              <div class="workflow-step">
+                <div class="workflow-step__num">4</div>
+                <div class="workflow-step__body">
+                  <h4>What you'd write in a paper</h4>
+                  <p>"Network analysis of SCZ GWAS-implicated proteins identified GRIN2B as a high-centrality hub (betweenness rank: top 5) in the glutamate receptor signalling module. Structural assessment of GRIN2B using the AlphaFold v2 predicted structure (pLDDT &gt; 85 for the ATD; UniProt Q13224) and pocket detection (FPocket v3.0; top pocket druggability score = 0.71) confirmed structural druggability at the ATD dimer interface, consistent with the known ifenprodil binding site (Bhatt et al., 2017). These converging lines of computational evidence support GRIN2B as a high-priority drug target candidate for SCZ pharmacotherapy."</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="content-section reveal" id="summary">
+            <span class="section-label">// 8.6</span>
+            <h2>Summary: AlphaFold's role in the PPI toolkit</h2>
+            <p>AlphaFold does not replace STRING, Cytoscape, g:Profiler, or Metascape — it operates at a different level of analysis and the tools are complementary, not competing. The sensible workflow is:</p>
+            <p><strong>Systems level first</strong> (STRING → network → MCODE → enrichment → hub identification) to determine which proteins matter and how they relate to each other. Then <strong>molecular level second</strong> (AlphaFold → structure review → AlphaFold-Multimer for complex prediction → FPocket for druggability) to understand what the interactions look like and whether they're actionable. AlphaFold gives your hub protein candidates structural credibility and drug development context. Without the network analysis upstream, you wouldn't know which of the ~20,000 human proteins to bother running AlphaFold on.</p>
+
+            <div class="callout callout--insight">
+              <div class="callout__icon">💡</div>
+              <div>
+                <div class="callout__title">The one-sentence version for your professor</div>
+                <p>AlphaFold tells you the shape of each protein your network analysis has flagged as important — this confirms whether a predicted interaction is structurally plausible, identifies where on the protein drugs could bind, and can computationally test novel interaction hypotheses that the network suggests but databases haven't confirmed yet.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapter nav -->
+          <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top:1px solid var(--border); margin-top:2rem;">
+            <a href="06-best-practices.html" class="btn btn--ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Chapter 6: Best Practices
+            </a>
+            <a href="07-references.html" class="btn btn--primary">
+              References
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+        </div>
+
+        <aside>
+          <nav class="toc" aria-label="Table of contents">
+            <div class="toc__title">In this chapter</div>
+            <ul class="toc__list">
+              <li><a href="#what-is">8.1 What AlphaFold is</a></li>
+              <li><a href="#workflow">8.2 Where it fits in</a></li>
+              <li><a href="#tools">8.3 Practical tools</a></li>
+              <li><a href="#limits">8.4 Limitations</a></li>
+              <li><a href="#integrated">8.5 Integrated example</a></li>
+              <li><a href="#summary">8.6 Summary</a></li>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · Chapter 8: AlphaFold &amp; Structure</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="06-best-practices.html">← Best Practices</a></li>
+          <li><a href="07-references.html">References →</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/interactive.js"></script>
+</body>
+</html>

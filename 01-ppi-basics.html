@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 1: PPI Fundamentals — PPI Guidebook</title>
+  <meta name="description" content="Learn what protein–protein interactions are, how interaction networks are structured, what hub proteins are, and why this matters for neuroscience research." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    /* ── Chapter 1 specific ─────────────────────────────── */
+    .network-demo-container {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .network-demo-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: var(--navy-light);
+    }
+
+    .network-demo-header h4 { font-size: 0.85rem; margin: 0; color: var(--text-secondary); }
+
+    .network-demo-body {
+      height: 380px;
+      position: relative;
+    }
+
+    #basics-network { width: 100%; height: 100%; }
+
+    /* Interaction type diagram */
+    .interaction-diagram {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    .itype-row {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding: 1.25rem 0;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .itype-row:last-child { border-bottom: none; }
+
+    .itype-visual {
+      flex-shrink: 0;
+      width: 120px;
+    }
+
+    .itype-info h4 { font-size: 1rem; margin-bottom: 0.4rem; }
+    .itype-info p  { font-size: 0.85rem; line-height: 1.65; }
+
+    /* Degree chart */
+    #degree-chart-wrap {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      overflow: hidden;
+    }
+
+    /* Node metrics interactive */
+    .metrics-demo {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+    }
+
+    .metric-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .metric-card {
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.25rem;
+      cursor: pointer;
+      transition: all 0.25s;
+    }
+
+    .metric-card.selected, .metric-card:hover {
+      border-color: var(--teal);
+      background: var(--teal-glow);
+    }
+
+    .metric-card h4 { font-size: 0.9rem; color: var(--teal); margin-bottom: 0.4rem; }
+    .metric-card p  { font-size: 0.8rem; line-height: 1.5; }
+
+    #metric-detail {
+      margin-top: 1.5rem;
+      padding: 1.25rem 1.5rem;
+      background: var(--navy-light);
+      border-radius: 10px;
+      border-left: 3px solid var(--teal);
+      min-height: 80px;
+      transition: all 0.3s;
+    }
+
+    #metric-detail h4 { color: var(--teal); margin-bottom: 0.5rem; }
+    #metric-detail p  { font-size: 0.88rem; }
+
+    /* Formula display */
+    .formula-box {
+      background: rgba(0,201,167,0.05);
+      border: 1px solid rgba(0,201,167,0.2);
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      color: var(--teal);
+      text-align: center;
+      margin: 1rem 0;
+    }
+
+    /* Content sections */
+    .content-section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 90px;
+    }
+
+    .content-section h2 {
+      font-size: clamp(1.5rem, 3vw, 2rem);
+      margin-bottom: 1.25rem;
+    }
+
+    .content-section h3 {
+      font-size: 1.2rem;
+      margin: 2rem 0 0.75rem;
+      color: var(--text-primary);
+    }
+
+    .content-section p { font-size: 0.97rem; }
+
+    /* Scale-free callout */
+    .scale-free-visual {
+      display: flex;
+      align-items: flex-end;
+      gap: 0.4rem;
+      height: 80px;
+      margin: 1.5rem 0;
+    }
+
+    .sf-bar {
+      background: var(--teal);
+      border-radius: 3px 3px 0 0;
+      flex-shrink: 0;
+      transition: opacity 0.3s;
+    }
+    .sf-bar:hover { opacity: 0.7; }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <span class="nav__logo-dot"></span>
+        PPI Guide
+      </a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── PAGE HERO ───────────────────────────────────────── -->
+  <header class="page-hero" style="background: radial-gradient(ellipse 80% 60% at 60% 50%, rgba(0,201,167,0.06) 0%, transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">Chapter 01</span>
+        <span class="badge badge--teal">Foundations</span>
+      </div>
+      <h1 class="animate-fade-up">PPI Fundamentals</h1>
+      <p class="animate-fade-up animate-fade-up--d1">
+        Proteins don't work in isolation. This chapter explains what a protein–protein interaction is, how interactions form networks, what makes certain proteins critical hubs, and why all of this is particularly important in the context of neuroscience research.
+      </p>
+    </div>
+  </header>
+
+  <!-- ── MAIN CONTENT ────────────────────────────────────── -->
+  <main>
+    <div class="container">
+      <div class="reading-layout">
+
+        <!-- ── Left: Content ─────────────────────────────── -->
+        <div>
+
+          <!-- Section 1: What is a PPI -->
+          <div class="content-section reveal" id="what-ppi">
+            <span class="section-label">// section 1.1</span>
+            <h2>What exactly is a protein–protein interaction?</h2>
+            <p>
+              A <strong>protein–protein interaction (PPI)</strong> is a physical contact between two or more protein molecules that leads to a biological outcome — a change in the activity, localisation, stability, or signalling behaviour of one or both proteins. This contact is mediated by specific structural surfaces on each protein, often referred to as the <span data-def="The region on a protein's surface that physically contacts another protein. Mutations here often abolish the interaction.">binding interface</span>.
+            </p>
+            <p>
+              The key word here is <em>specific</em>. Proteins do not stick to everything they encounter. Their surfaces have evolved complementary shapes and charge distributions so that only the right partner fits, like a lock accepting only one key. This specificity is what makes PPIs information-carrying: the fact that protein A binds protein B, but not protein C, is itself a meaningful biological signal.
+            </p>
+
+            <div class="callout callout--info" style="margin: 1.5rem 0;">
+              <div class="callout__icon">💡</div>
+              <div>
+                <div class="callout__title">Why "interaction" and not just "binding"?</div>
+                <p>Binding implies a static lock-and-key relationship. "Interaction" better captures the dynamic reality: many PPIs are fleeting (transient), regulated, and occur only in specific cellular contexts — for example, only after a protein has been phosphorylated, or only in one cellular compartment.</p>
+              </div>
+            </div>
+
+            <h3>The three main interaction types</h3>
+            <p>Not all PPIs are the same. Understanding the distinction is important for interpreting what databases like STRING report and what experimental methods can detect:</p>
+
+            <div class="interaction-diagram reveal" style="margin-top:1.5rem;">
+              <div class="itype-row">
+                <div class="itype-visual">
+                  <svg viewBox="0 0 120 60" width="120" height="60">
+                    <circle cx="35" cy="30" r="18" fill="rgba(0,201,167,0.15)" stroke="#00c9a7" stroke-width="1.5"/>
+                    <circle cx="85" cy="30" r="18" fill="rgba(0,201,167,0.15)" stroke="#00c9a7" stroke-width="1.5"/>
+                    <text x="35" y="34" text-anchor="middle" fill="#00c9a7" font-size="8" font-family="DM Mono">A</text>
+                    <text x="85" y="34" text-anchor="middle" fill="#00c9a7" font-size="8" font-family="DM Mono">B</text>
+                    <line x1="53" y1="30" x2="67" y2="30" stroke="#00c9a7" stroke-width="2" stroke-dasharray="3,2"/>
+                  </svg>
+                </div>
+                <div class="itype-info">
+                  <h4 class="highlight">Direct (binary) interaction</h4>
+                  <p>Two proteins physically contact each other. Detected by <span data-def="Yeast Two-Hybrid: A genetic technique where two proteins are fused to parts of a transcription factor. If they interact, a reporter gene is activated.">yeast two-hybrid (Y2H)</span>, co-immunoprecipitation, or fluorescence resonance energy transfer (FRET). STRING reports these under the "experimentally determined" evidence channel. Example: SNCA directly binds PARK7 (DJ-1).</p>
+                </div>
+              </div>
+              <div class="itype-row">
+                <div class="itype-visual">
+                  <svg viewBox="0 0 120 60" width="120" height="60">
+                    <ellipse cx="60" cy="30" rx="40" ry="20" fill="rgba(245,166,35,0.08)" stroke="rgba(245,166,35,0.4)" stroke-width="1" stroke-dasharray="4,3"/>
+                    <circle cx="40" cy="28" r="12" fill="rgba(245,166,35,0.15)" stroke="#f5a623" stroke-width="1.5"/>
+                    <circle cx="70" cy="32" r="10" fill="rgba(245,166,35,0.15)" stroke="#f5a623" stroke-width="1.5"/>
+                    <text x="40" y="32" text-anchor="middle" fill="#f5a623" font-size="8" font-family="DM Mono">A</text>
+                    <text x="70" y="36" text-anchor="middle" fill="#f5a623" font-size="8" font-family="DM Mono">B</text>
+                  </svg>
+                </div>
+                <div class="itype-info">
+                  <h4 class="highlight--amber">Co-complex (indirect) interaction</h4>
+                  <p>Two proteins are found in the same <span data-def="A group of proteins that bind together and function as a unit. Members may or may not directly contact each other.">macromolecular complex</span> but may not directly touch. Detected by <span data-def="Affinity Purification–Mass Spectrometry: Pulling down a protein with an antibody or tag, then identifying all co-purified proteins by mass spectrometry.">AP-MS</span>. Example: APP and nicastrin are both in the γ-secretase complex but don't directly contact each other.</p>
+                </div>
+              </div>
+              <div class="itype-row">
+                <div class="itype-visual">
+                  <svg viewBox="0 0 120 70" width="120" height="70">
+                    <circle cx="35" cy="35" r="14" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+                    <circle cx="80" cy="35" r="14" fill="rgba(167,139,250,0.05)" stroke="rgba(167,139,250,0.4)" stroke-width="1" stroke-dasharray="3,3"/>
+                    <text x="35" y="39" text-anchor="middle" fill="#a78bfa" font-size="8" font-family="DM Mono">A</text>
+                    <text x="80" y="39" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="DM Mono">B?</text>
+                    <path d="M50,28 Q60,15 70,28" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="2,2" marker-end="url(#arrow-lav)"/>
+                    <defs><marker id="arrow-lav" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="#a78bfa"/></marker></defs>
+                  </svg>
+                </div>
+                <div class="itype-info">
+                  <h4 class="highlight--lav">Transient vs. stable interactions</h4>
+                  <p>Stable interactions persist (e.g. ribosome subunits). Transient interactions are brief, often regulated by post-translational modifications: a kinase briefly docks onto its substrate, phosphorylates it, then dissociates. Most signalling PPIs are transient — making them harder to detect experimentally but functionally critical.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 2: Networks -->
+          <div class="content-section reveal" id="networks">
+            <span class="section-label">// section 1.2</span>
+            <h2>From interactions to networks</h2>
+            <p>
+              If you study just one PPI in isolation, you get limited information. The real power comes from studying all the interactions together, as a <strong>network</strong> (also called a <span data-def="A graph where nodes represent proteins and edges represent interactions between them. Also called a PPI network.">protein interaction network</span> or "interactome graph"). In network terms, proteins are <em>nodes</em> and their interactions are <em>edges</em>.
+            </p>
+            <p>
+              A network reveals things that single interactions cannot: which proteins are most connected (hubs), which proteins bridge different functional groups (bottlenecks), and how information flows from a receptor at the cell surface to a transcription factor in the nucleus.
+            </p>
+
+            <div class="network-demo-container reveal" style="margin: 2rem 0;">
+              <div class="network-demo-header">
+                <h4>Interactive PPI network — hover over nodes to explore</h4>
+                <span class="badge badge--teal">Drag nodes to rearrange</span>
+              </div>
+              <div class="network-demo-body">
+                <div id="basics-network"></div>
+              </div>
+            </div>
+
+            <div class="callout callout--key" style="margin-bottom:1.5rem;">
+              <div class="callout__icon">🔑</div>
+              <div>
+                <div class="callout__title">Reading the network above</div>
+                <p><strong>Larger nodes</strong> = more interaction partners (higher degree). <strong>Brighter edges</strong> = higher confidence interactions (more experimental evidence). <strong>Clusters</strong> = proteins that tend to co-function. Try dragging a hub node — notice how much of the network moves with it.</p>
+              </div>
+            </div>
+
+            <h3>What is a "scale-free" network, and is the interactome one?</h3>
+            <p>
+              In a random network, every node has roughly the same number of connections. But biological PPI networks follow a very different pattern, called a <strong>scale-free distribution</strong> (or power-law distribution): most proteins have very few interaction partners, while a small number of hub proteins have extremely many. This creates a characteristic "long tail" when you plot it:
+            </p>
+
+            <div id="degree-chart-wrap" class="reveal" style="margin: 1.5rem 0;">
+              <div style="font-family: var(--font-mono); font-size: 0.72rem; color: var(--text-muted); margin-bottom: 0.75rem; letter-spacing: 0.08em; text-transform: uppercase;">Typical PPI network degree distribution</div>
+              <div id="degree-chart"></div>
+            </div>
+
+            <p>
+              This shape has profound consequences. Because hubs are so highly connected, removing them (through mutation or drug treatment) can collapse large sections of the network. This is why many disease-causing mutations hit hub proteins — and why bioinformaticians specifically look for hubs when analysing a PPI network. It also explains why some proteins (like TP53, MAPT, or PSD-95) appear in so many different diseases.
+            </p>
+
+            <div class="callout callout--warn" style="margin-top:1.5rem;">
+              <div class="callout__icon">⚠️</div>
+              <div>
+                <div class="callout__title">Important caveat on "scale-free"</div>
+                <p>The scale-free model is a useful approximation, but has been debated in recent literature (Broido &amp; Clauset, 2019). Many observed high-degree hubs may partly reflect <em>study bias</em> — well-studied proteins attract more interaction screens. Keep this in mind when interpreting hub analyses from databases like STRING, which aggregate published literature.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 3: Hub proteins -->
+          <div class="content-section reveal" id="hubs">
+            <span class="section-label">// section 1.3</span>
+            <h2>Hub proteins: the airports of the interactome</h2>
+            <p>
+              A <strong>hub protein</strong> is formally defined as a node with a degree (number of interaction partners) significantly higher than the network average. But beyond the definition, hub proteins represent something biologically important: they are physical meeting points for multiple signalling pathways.
+            </p>
+
+            <div class="grid-2" style="gap: 1.5rem; margin: 2rem 0;">
+              <div class="card card--teal">
+                <h4 style="color: var(--teal); margin-bottom: 0.75rem;">Date hubs</h4>
+                <p style="font-size:0.88rem;">Interact with many partners, but mostly <em>one at a time</em>. Their binding interfaces are context-dependent — they adopt different conformations depending on the current partner. Common in regulatory signalling (e.g. kinase substrates). Also called "sequential" hubs.</p>
+              </div>
+              <div class="card card--amber">
+                <h4 style="color: var(--amber); margin-bottom: 0.75rem;">Party hubs</h4>
+                <p style="font-size:0.88rem;">Interact with many partners <em>simultaneously</em>, often as part of a large stable complex. Tend to be highly expressed and broadly present across tissues. Disrupting them typically has severe, pleiotropic effects. Examples include ribosomal proteins and core chaperones like HSP90.</p>
+              </div>
+            </div>
+
+            <p>
+              In neuroscience, several hub proteins come up repeatedly in PPI analyses. Understanding why requires knowing a bit about their biology:
+            </p>
+
+            <div class="accordion" style="margin-top:1.5rem;">
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  APP (Amyloid Precursor Protein) — the Alzheimer's hub
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body">
+                  <div class="accordion__body-inner">
+                    <p>APP is a transmembrane protein whose sequential cleavage by BACE1 (β-secretase) and the γ-secretase complex (containing PSEN1, PSEN2, nicastrin, APH-1) produces amyloid-β peptides. In STRING analysis, APP consistently appears as a high-degree hub because it physically interacts with the secretases that process it, with adaptor proteins like FE65, and with extracellular matrix components. The network around APP has been instrumental in identifying potential AD drug targets — every direct interactor of APP is a candidate for modulating Aβ production.</p>
+                    <div class="callout callout--example" style="margin-top:1rem;">
+                      <div class="callout__icon">📄</div>
+                      <div><div class="callout__title">In practice</div><p>When you query APP in STRING with a confidence threshold of 0.7 and limit to 20 interactors, you will reliably recover PSEN1, BACE1, APOE, CLU, and BIN1 — the core AD-relevant interactome. This is exactly the kind of result you'll see in the worked examples in Chapter 5.</p></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  MAPT (Tau) — the cytoskeletal hub
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body">
+                  <div class="accordion__body-inner">
+                    <p>MAPT encodes tau, a microtubule-associated protein that stabilises the neuronal cytoskeleton. In Alzheimer's and other tauopathies, tau becomes abnormally phosphorylated (by CDK5 and GSK3β) and detaches from microtubules to form neurofibrillary tangles. The PPI network around MAPT is therefore highly relevant to disease: CDK5, GSK3β, DYRK1A, and PP2A all interact with tau and modulate its phosphorylation state. GO enrichment of MAPT's first-order interactors consistently returns terms related to "microtubule organisation", "protein phosphorylation", and "axon guidance".</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  SNCA (α-Synuclein) — the Parkinson's hub
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body">
+                  <div class="accordion__body-inner">
+                    <p>α-Synuclein is a presynaptic protein implicated in dopamine neurotransmission. Its tendency to misfold and aggregate into Lewy bodies is the hallmark of Parkinson's disease. In STRING, SNCA forms a tight cluster with PARK2 (Parkin), PINK1, and LRRK2 — all PD-causative genes that converge on mitochondrial quality control and the ubiquitin-proteasome system. This convergence was revealed partly through PPI network analysis, helping establish that PD may fundamentally be a disease of impaired protein degradation rather than solely a protein aggregation disorder.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  PSD-95 (DLG4) — the synaptic scaffold hub
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body">
+                  <div class="accordion__body-inner">
+                    <p>PSD-95 (encoded by DLG4) is a scaffolding protein at the postsynaptic density of excitatory synapses. It contains multiple PDZ domains — protein interaction modules that bind to the C-terminal tails of NMDA receptors, AMPA receptor trafficking proteins, and numerous signalling enzymes. With over 100 documented interactors, PSD-95 is one of the highest-degree hub proteins in the brain interactome. Mutations affecting its interaction network contribute to autism, schizophrenia, and intellectual disability — highlighting how a single hub can be relevant to diverse neuropsychiatric conditions.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 4: Key metrics -->
+          <div class="content-section reveal" id="metrics">
+            <span class="section-label">// section 1.4</span>
+            <h2>Key network metrics you need to know</h2>
+            <p>
+              When you run a network analysis — whether in Metascape, Cytoscape, or STRING — you'll encounter several quantitative measures. Click on each below to understand what it measures and when it matters:
+            </p>
+
+            <div class="metrics-demo">
+              <div class="metric-cards" id="metric-cards">
+                <div class="metric-card" data-metric="degree">
+                  <h4>Degree</h4>
+                  <p>Count of direct interaction partners.</p>
+                </div>
+                <div class="metric-card" data-metric="betweenness">
+                  <h4>Betweenness centrality</h4>
+                  <p>How often a protein lies on shortest paths between others.</p>
+                </div>
+                <div class="metric-card" data-metric="clustering">
+                  <h4>Clustering coefficient</h4>
+                  <p>How interconnected a protein's neighbours are.</p>
+                </div>
+                <div class="metric-card" data-metric="eigenvector">
+                  <h4>Eigenvector centrality</h4>
+                  <p>Influence weighted by the importance of neighbours.</p>
+                </div>
+              </div>
+
+              <div id="metric-detail">
+                <p style="color: var(--text-muted); font-size: 0.88rem;">← Select a metric to learn more</p>
+              </div>
+            </div>
+
+            <div class="callout callout--key" style="margin-top:1.5rem;">
+              <div class="callout__icon">🔑</div>
+              <div>
+                <div class="callout__title">Which metric to use?</div>
+                <p>For identifying disease-relevant proteins: <strong>degree</strong> finds functional hubs. <strong>Betweenness</strong> finds cross-pathway bottlenecks that are excellent drug target candidates. <strong>Clustering coefficient</strong> helps identify protein complexes. Metascape and Cytoscape's NetworkAnalyzer plugin compute all of these for your network automatically.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Section 5: Why neuro -->
+          <div class="content-section reveal" id="neuro-context">
+            <span class="section-label">// section 1.5</span>
+            <h2>Why PPIs are particularly important in neuroscience</h2>
+            <p>
+              The nervous system is unique among tissues for several reasons that make PPI analysis especially powerful and especially necessary:
+            </p>
+
+            <div class="grid-2" style="gap:1.25rem; margin:1.5rem 0;">
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem;">🧠 Extreme molecular complexity</h4>
+                <p style="font-size:0.87rem;">Neurons express more genes than almost any other cell type. The postsynaptic density alone contains over 1,000 proteins. Interactions between them cannot be studied one at a time — network approaches are the only practical way to handle this scale.</p>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem;">⏱️ Rapid, dynamic signalling</h4>
+                <p style="font-size:0.87rem;">Synaptic plasticity, learning, and memory all depend on rapidly shifting PPI landscapes — proteins associate and dissociate on millisecond to minute timescales. Understanding these dynamics requires knowing which interactions are possible, which is where the interactome map comes in.</p>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem;">🔬 Genetic disease convergence</h4>
+                <p style="font-size:0.87rem;">GWAS and sequencing studies have identified hundreds of genes associated with AD, PD, ASD, and schizophrenia. By themselves these gene lists are hard to interpret. PPI network analysis reveals that seemingly unrelated disease genes often encode proteins in the same interaction network — pointing towards shared pathological mechanisms.</p>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem;">💊 Drug target identification</h4>
+                <p style="font-size:0.87rem;">Most current neurological drugs target receptors or enzymes directly. But many researchers now argue that disrupting specific PPIs — rather than blocking whole protein activities — could be more selective. Identifying and targeting PPIs requires knowing the interactome first.</p>
+              </div>
+            </div>
+
+            <div class="pull-quote">
+              <p>"Mapping the human brain interactome is not merely an academic exercise — it is a prerequisite for understanding how neurological diseases arise and how we might treat them."</p>
+            </div>
+          </div>
+
+          <!-- Chapter nav -->
+          <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top: 1px solid var(--border); margin-top:2rem;">
+            <a href="index.html" class="btn btn--ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Home
+            </a>
+            <a href="02-databases.html" class="btn btn--primary">
+              Chapter 2: Databases
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+        </div>
+
+        <!-- ── Right: TOC ──────────────────────────────────── -->
+        <aside>
+          <nav class="toc" aria-label="Table of contents">
+            <div class="toc__title">In this chapter</div>
+            <ul class="toc__list">
+              <li><a href="#what-ppi">1.1 What is a PPI?</a></li>
+              <li><a href="#networks">1.2 From interactions to networks</a></li>
+              <li><a href="#hubs">1.3 Hub proteins</a></li>
+              <li><a href="#metrics">1.4 Key network metrics</a></li>
+              <li><a href="#neuro-context">1.5 PPIs in neuroscience</a></li>
+            </ul>
+          </nav>
+        </aside>
+
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · Chapter 1: PPI Fundamentals</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="02-databases.html">Next: Databases →</a></li>
+          <li><a href="07-references.html">References</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" crossorigin="anonymous"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/network-viz.js"></script>
+  <script src="assets/js/interactive.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      // Init basics-page network
+      PPINetwork.initHeroNetwork('basics-network');
+      PPINetwork.initDegreeChart('degree-chart');
+
+      // Metric cards interaction
+      const metricData = {
+        degree: {
+          title: 'Degree centrality',
+          formula: 'degree(v) = number of edges connected to node v',
+          text: 'The simplest and most intuitive measure. A protein with degree 30 interacts with 30 other proteins. In Cytoscape\'s NetworkAnalyzer, this is listed as "NumberOfDirectedEdges" or "Degree". High-degree proteins are your hub candidates. In STRING, the degree of a queried protein within the returned network is directly visible from the number of connecting lines. Important caveat: STRING networks are expanded to include non-queried proteins, so degree within the STRING visualisation reflects the full database, not just your input list.',
+        },
+        betweenness: {
+          title: 'Betweenness centrality',
+          formula: 'BC(v) = Σ σ(s,t|v) / σ(s,t)  for all s≠v≠t',
+          text: 'Counts how often node v sits on the shortest path between every pair of other nodes (s, t). σ(s,t) = total shortest paths between s and t; σ(s,t|v) = those passing through v. Proteins with high betweenness are "bottlenecks" — information must pass through them. These are especially interesting drug targets because blocking them interrupts communication between multiple pathways. Metascape\'s network view does not directly report betweenness; you need Cytoscape + NetworkAnalyzer for this metric.',
+        },
+        clustering: {
+          title: 'Clustering coefficient',
+          formula: 'CC(v) = 2 × e(Nv) / (kv × (kv − 1))',
+          text: 'Where e(Nv) = edges among v\'s neighbours and kv = degree of v. Ranges from 0 (none of v\'s neighbours interact with each other) to 1 (all of v\'s neighbours form a complete clique). High clustering coefficient proteins are embedded in tight complexes — their neighbours tend to interact with each other. Low CC with high degree = a protein that bridges many otherwise separate groups. Metascape\'s MCODE algorithm essentially identifies clusters of high-CC nodes.',
+        },
+        eigenvector: {
+          title: 'Eigenvector centrality',
+          formula: 'EC(v) = (1/λ) × Σ EC(u) for all u connected to v',
+          text: 'Your score is proportional to the sum of your neighbours\' scores — being connected to important proteins matters more than just being highly connected. Think of it as a "PageRank" for the protein network. Useful for identifying proteins that are well-positioned within influential regions of the network even if their raw degree isn\'t the highest. Google Scholar\'s h-index has a conceptual parallel here: being cited by highly-cited papers matters more than just having many citations.',
+        },
+      };
+
+      document.querySelectorAll('.metric-card').forEach(card => {
+        card.addEventListener('click', () => {
+          document.querySelectorAll('.metric-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          const key = card.dataset.metric;
+          const d = metricData[key];
+          const detail = document.getElementById('metric-detail');
+          detail.innerHTML = `
+            <h4>${d.title}</h4>
+            <div class="formula-box">${d.formula}</div>
+            <p style="font-size:0.88rem;">${d.text}</p>
+          `;
+        });
+      });
+    });
+  </script>
+</body>
+</html>

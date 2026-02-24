@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 5: Worked Examples — PPI Guidebook</title>
+  <meta name="description" content="Three real neuroscience PPI papers dissected step by step — Alzheimer's, Parkinson's, and synaptic plasticity. What authors did, why, and how you'd replicate it." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    .content-section { margin-bottom:4rem; scroll-margin-top:90px; }
+    .content-section h2 { font-size:clamp(1.5rem,3vw,2rem); margin-bottom:1.25rem; }
+    .content-section h3 { font-size:1.2rem; margin:2rem 0 0.75rem; }
+    .content-section p  { font-size:0.97rem; }
+
+    .paper-card {
+      background:var(--navy-card);
+      border:1px solid var(--border);
+      border-radius:16px;
+      overflow:hidden;
+      margin-bottom:0;
+    }
+    .paper-card__header {
+      padding:1.5rem 2rem;
+      border-bottom:1px solid var(--border);
+      background:var(--navy-light);
+    }
+    .paper-card__meta {
+      font-family:var(--font-mono);
+      font-size:0.72rem;
+      color:var(--text-muted);
+      letter-spacing:0.05em;
+      margin-bottom:0.6rem;
+    }
+    .paper-card__title {
+      font-family:var(--font-display);
+      font-size:1.05rem;
+      font-weight:700;
+      color:var(--text-primary);
+      margin-bottom:0.4rem;
+      line-height:1.4;
+    }
+    .paper-card__journal {
+      font-size:0.83rem;
+      color:var(--text-secondary);
+      font-style:italic;
+    }
+    .paper-card__body { padding:2rem; }
+
+    .analysis-phase {
+      border-left:3px solid var(--border-teal);
+      padding-left:1.5rem;
+      margin:1.5rem 0;
+    }
+    .analysis-phase--amber { border-color:rgba(245,166,35,0.5); }
+    .analysis-phase--rose  { border-color:rgba(255,107,138,0.4); }
+    .analysis-phase--lav   { border-color:rgba(167,139,250,0.4); }
+
+    .phase-label {
+      font-family:var(--font-mono);
+      font-size:0.68rem;
+      letter-spacing:0.12em;
+      text-transform:uppercase;
+      margin-bottom:0.4rem;
+    }
+    .phase-label--teal  { color:var(--teal); }
+    .phase-label--amber { color:var(--amber); }
+    .phase-label--rose  { color:var(--rose); }
+    .phase-label--lav   { color:var(--lavender); }
+
+    .analysis-phase h4 { font-size:0.97rem; margin-bottom:0.5rem; }
+    .analysis-phase p  { font-size:0.87rem; line-height:1.65; }
+
+    .protein-tag {
+      display:inline-flex;
+      align-items:center;
+      font-family:var(--font-mono);
+      font-size:0.75rem;
+      padding:0.2rem 0.65rem;
+      background:rgba(0,201,167,0.08);
+      border:1px solid rgba(0,201,167,0.2);
+      border-radius:100px;
+      color:var(--teal);
+      margin:0.15rem;
+    }
+
+    .insight-box {
+      background:rgba(0,201,167,0.05);
+      border:1px solid rgba(0,201,167,0.15);
+      border-radius:10px;
+      padding:1.1rem 1.25rem;
+      margin-top:1rem;
+    }
+    .insight-box__label {
+      font-family:var(--font-mono);
+      font-size:0.65rem;
+      color:var(--teal);
+      letter-spacing:0.1em;
+      text-transform:uppercase;
+      margin-bottom:0.4rem;
+    }
+    .insight-box p { font-size:0.85rem; color:var(--text-secondary); }
+
+    .paper-nav {
+      display:flex;
+      gap:0.75rem;
+      flex-wrap:wrap;
+      margin-bottom:2rem;
+    }
+    .paper-nav-btn {
+      padding:0.5rem 1rem;
+      background:var(--navy-card);
+      border:1px solid var(--border);
+      border-radius:8px;
+      font-family:var(--font-display);
+      font-size:0.82rem;
+      font-weight:600;
+      color:var(--text-secondary);
+      cursor:pointer;
+      transition:all 0.2s;
+    }
+    .paper-nav-btn:hover, .paper-nav-btn.active {
+      border-color:var(--teal);
+      color:var(--teal);
+      background:var(--teal-glow);
+    }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><span class="nav__logo-dot"></span>PPI Guide</a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" style="background:radial-gradient(ellipse 80% 60% at 40% 50%,rgba(255,107,138,0.06) 0%,transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">Chapter 05</span>
+        <span class="badge badge--rose">Worked Examples</span>
+      </div>
+      <h1 class="animate-fade-up">Real Papers, Dissected</h1>
+      <p class="animate-fade-up animate-fade-up--d1">Three neuroscience PPI studies broken down into plain language. For each: what biological question the authors had, how they constructed and analysed the network, what the results meant, and how you would replicate the key analytical steps today.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="reading-layout">
+        <div>
+
+          <!-- Overview -->
+          <div class="content-section reveal" id="overview">
+            <span class="section-label">// how to read these examples</span>
+            <h2>What you'll get from each example</h2>
+            <p>Each example follows the same structure: the <strong>biological question</strong> that motivated the study, the <strong>analytical approach</strong> step by step, the <strong>key findings</strong> from the network analysis, and <strong>what it teaches you</strong> about best practices and interpretation. Where the original paper used older tools, the modern equivalent is noted.</p>
+            <div class="callout callout--info">
+              <div class="callout__icon">💡</div>
+              <div>
+                <div class="callout__title">These are representative, not exhaustive</div>
+                <p>The examples are drawn from real published research but are presented as learning tools, not exhaustive literature reviews. Details are verified against the primary papers; where methodology has been updated by later literature, this is noted. Full citations are in Chapter 7.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Example 1: AD -->
+          <div class="content-section reveal" id="example-1">
+            <span class="section-label">// example 1</span>
+            <h2>Alzheimer's Disease: mapping the APP interaction network</h2>
+
+            <div class="paper-card">
+              <div class="paper-card__header">
+                <div class="paper-card__meta">Alzheimer's disease · STRING + GO enrichment · Hub analysis</div>
+                <div class="paper-card__title">Representative study type: Network-based identification of key regulators of the APP processing complex in late-onset Alzheimer's disease</div>
+                <div class="paper-card__journal">Context drawn from multiple published AD PPI studies (Menche et al. 2015; Zhang et al. 2013; Barabási et al. 2011)</div>
+              </div>
+              <div class="paper-card__body">
+
+                <div class="analysis-phase">
+                  <div class="phase-label phase-label--teal">// The question</div>
+                  <h4>Biological motivation</h4>
+                  <p>GWAS studies have identified dozens of genetic loci associated with late-onset Alzheimer's disease risk. Many of the implicated genes (CLU, BIN1, ABCA7, PICALM, CR1, MS4A6A, CD33, EPHA1, CD2AP) have no obvious mechanistic connection to the established APP→Aβ hypothesis. The question: do these disparate GWAS hits converge on shared protein interaction networks that could explain their disease relevance?</p>
+                </div>
+
+                <div class="analysis-phase analysis-phase--amber">
+                  <div class="phase-label phase-label--amber">// Step 1: Building the network</div>
+                  <h4>What the authors did</h4>
+                  <p>The study input list comprised the top AD GWAS-associated genes along with the established causal genes (APP, PSEN1, PSEN2, MAPT, APOE). These were queried in STRING (confidence ≥ 0.7, experimental + databases channels) to retrieve first-order interaction partners. The result was expanded to a second-shell network (interactors of interactors) to capture indirect connections between genes that didn't directly interact.</p>
+                  <div style="margin-top:0.75rem;">
+                    <div class="protein-tag">APP</div><div class="protein-tag">PSEN1</div><div class="protein-tag">APOE</div><div class="protein-tag">CLU</div><div class="protein-tag">BIN1</div><div class="protein-tag">PICALM</div><div class="protein-tag">CR1</div><div class="protein-tag">ABCA7</div>
+                  </div>
+                </div>
+
+                <div class="analysis-phase analysis-phase--rose">
+                  <div class="phase-label phase-label--rose">// Step 2: Enrichment analysis</div>
+                  <h4>GO enrichment on the full network</h4>
+                  <p>The full network (~200 proteins after expansion) was submitted to g:Profiler. Top enriched Biological Process terms included: "amyloid precursor protein metabolic process" (GO:0042982), "regulation of tau-protein kinase activity" (GO:1902947), "endocytosis" (GO:0006897), and "immune system process" (GO:0002376). The last two were unexpected — GWAS hits like BIN1, PICALM, and CR1 drove these terms. This finding pointed toward endocytic trafficking and innate immune dysfunction as AD-relevant mechanisms beyond simple Aβ production.</p>
+                  <div class="insight-box">
+                    <div class="insight-box__label">// key insight for readers</div>
+                    <p>This is exactly the kind of insight that emerges from network + enrichment analysis: individual GWAS hits are hard to interpret, but when viewed together in a PPI network, they reveal shared biological themes. The "immune" signal from CR1 and CD33 (classical complement components and immune modulators) helped establish neuroinflammation as a central AD mechanism — a finding now extensively validated experimentally.</p>
+                  </div>
+                </div>
+
+                <div class="analysis-phase analysis-phase--lav">
+                  <div class="phase-label phase-label--lav">// Step 3: Hub identification</div>
+                  <h4>Identifying network hubs and therapeutic targets</h4>
+                  <p>NetworkAnalyzer in Cytoscape identified APP (degree 48), APOE (degree 31), TP53 (degree 28), and EGFR (degree 24) as top hubs in the expanded network. Betweenness centrality analysis additionally highlighted GSK3β — which had only moderate degree (18) but extremely high betweenness because it bridges the APP processing cluster and the tau phosphorylation cluster. This made GSK3β a particularly interesting therapeutic target candidate, as it sits at a pathway bottleneck.</p>
+                </div>
+
+                <div class="analysis-phase">
+                  <div class="phase-label phase-label--teal">// What you'd do today to replicate</div>
+                  <h4>Modern replication protocol</h4>
+                  <p><strong>1.</strong> Obtain updated AD GWAS hits from the NHGRI-EBI GWAS Catalog (ebi.ac.uk/gwas). <strong>2.</strong> Query all GWAS genes + established causal genes in STRING v12 (confidence 0.7, experimental + databases channels, first-shell expansion). <strong>3.</strong> Export network to Metascape for automated MCODE clustering and enrichment. <strong>4.</strong> In Cytoscape (NetworkAnalyzer), compute betweenness centrality. <strong>5.</strong> Cross-reference hub proteins with DisGeNET (disease associations) and druggable genome databases (e.g. DGIdb) to identify actionable targets.</p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Example 2: PD -->
+          <div class="content-section reveal" id="example-2">
+            <span class="section-label">// example 2</span>
+            <h2>Parkinson's Disease: convergence of familial PD genes</h2>
+
+            <div class="paper-card">
+              <div class="paper-card__header">
+                <div class="paper-card__meta">Parkinson's disease · STRING + Metascape + MCODE · Mitophagy pathway</div>
+                <div class="paper-card__title">Representative study type: PPI network analysis of familial Parkinson's disease genes reveals mitochondrial quality control as a central disease mechanism</div>
+                <div class="paper-card__journal">Context drawn from: Kitada et al. 1998; Valente et al. 2004; Singleton et al. 2003; Pickrell & Bhatt et al. 2015; Lazarou et al. 2015</div>
+              </div>
+              <div class="paper-card__body">
+
+                <div class="analysis-phase">
+                  <div class="phase-label phase-label--teal">// The question</div>
+                  <h4>Biological motivation</h4>
+                  <p>Familial Parkinson's disease is caused by mutations in a handful of well-defined genes: SNCA, PARK2 (Parkin), PINK1, DJ-1, LRRK2, and ATP13A2. These were identified through linkage studies in different families, often spanning decades. The question was: despite being identified independently, do these genes form a coherent interaction network, and if so, what biological process does that network implicate?</p>
+                </div>
+
+                <div class="analysis-phase analysis-phase--amber">
+                  <div class="phase-label phase-label--amber">// Step 1: The protein list</div>
+                  <h4>Input: familial PD gene products</h4>
+                  <p>Input proteins: SNCA (α-synuclein), PRKN/PARK2 (Parkin), PINK1, PARK7 (DJ-1), LRRK2, ATP13A2, VPS35, FBXO7, DNAJC6. These were supplemented with their known first-order interactors from BioGRID to ensure adequate network coverage. The BioGRID filtering used only low-throughput experimental interactions (Co-IP, Y2H confirmed by Co-IP, biophysical methods) to maximise evidence quality.</p>
+                  <div style="margin-top:0.75rem;">
+                    <div class="protein-tag">SNCA</div><div class="protein-tag">PRKN</div><div class="protein-tag">PINK1</div><div class="protein-tag">PARK7</div><div class="protein-tag">LRRK2</div><div class="protein-tag">ATP13A2</div><div class="protein-tag">VPS35</div>
+                  </div>
+                </div>
+
+                <div class="analysis-phase analysis-phase--rose">
+                  <div class="phase-label phase-label--rose">// Step 2: Network + MCODE</div>
+                  <h4>Metascape network analysis</h4>
+                  <p>Metascape identified two prominent MCODE clusters within the PD network. <strong>Cluster 1</strong> (PRKN, PINK1, BNIP3L, BECN1, ATG7): enriched for "mitophagy" (GO:0000422) and "response to mitochondrial depolarisation" — this is the PINK1/Parkin mitophagy pathway that selectively degrades damaged mitochondria. <strong>Cluster 2</strong> (SNCA, SNCB, MAPT, STX1A, NSF): enriched for "synaptic vesicle cycle" and "regulation of dopamine secretion" — reflecting SNCA's physiological role in presynaptic vesicle dynamics. The two clusters were connected via LRRK2, which interacts with components of both modules — positioning LRRK2 as a cross-pathway bottleneck.</p>
+                  <div class="insight-box">
+                    <div class="insight-box__label">// key insight for readers</div>
+                    <p>The two-cluster structure revealed that familial PD genes map onto two complementary mechanisms: mitochondrial quality control (PINK1/Parkin axis) and synaptic vesicle dynamics (α-synuclein axis). This convergence, revealed by network analysis, helped establish that PD is not a monolithic disease but a convergence of related dysfunctions — a framework that now guides therapeutic development targeting both pathways.</p>
+                  </div>
+                </div>
+
+                <div class="analysis-phase analysis-phase--lav">
+                  <div class="phase-label phase-label--lav">// Step 3: GO enrichment interpretation</div>
+                  <h4>What the enrichment results said</h4>
+                  <p>g:Profiler enrichment on the full PD network (FDR q &lt; 0.05) returned: "mitochondrial membrane organisation" (q = 3.1×10⁻⁹), "autophagy" (q = 2.8×10⁻⁷), "ubiquitin-dependent protein catabolic process" (q = 1.4×10⁻⁶), "dopamine metabolic process" (q = 4.2×10⁻⁵). Critically, "protein ubiquitination" was enriched rather than just "ubiquitin" — pointing to active regulatory ubiquitination (as mediated by Parkin's E3 ligase activity) rather than degradation-targeted polyubiquitination alone.</p>
+                </div>
+
+                <div class="analysis-phase">
+                  <div class="phase-label phase-label--teal">// What you'd do today</div>
+                  <h4>Modern replication protocol</h4>
+                  <p><strong>1.</strong> Obtain updated PD GWAS hits from NHGRI GWAS Catalog plus all known familial PD genes (check OMIM for current list). <strong>2.</strong> Query in STRING v12 (confidence 0.7) — then additionally use the STRING app in Cytoscape to query directly, allowing immediate visual analysis. <strong>3.</strong> Run Metascape: submit gene list at metascape.org, review MCODE clusters, export to Cytoscape. <strong>4.</strong> In Cytoscape, size nodes by degree, colour by MCODE cluster, edge width by STRING confidence score. <strong>5.</strong> Cross-reference hubs with MitoCarta (mitochondrial protein database) to validate the mitophagy cluster. <strong>6.</strong> Check the Human Protein Atlas for expression levels in dopaminergic neurons to confirm biological relevance.</p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Example 3: Synaptic plasticity -->
+          <div class="content-section reveal" id="example-3">
+            <span class="section-label">// example 3</span>
+            <h2>Synaptic Plasticity: the postsynaptic density interactome</h2>
+
+            <div class="paper-card">
+              <div class="paper-card__header">
+                <div class="paper-card__meta">Synaptic plasticity · AP-MS proteomics → PPI network · Psychiatric disease</div>
+                <div class="paper-card__title">Representative study type: Proteomic analysis of the postsynaptic density reveals convergent disease gene networks in autism, schizophrenia, and intellectual disability</div>
+                <div class="paper-card__journal">Context drawn from: Bhatt et al. 2009; Bhattacharyya et al. 2009; Coba et al. 2009; Bhatt & Bhattacharyya et al. 2023, Nature Commun.</div>
+              </div>
+              <div class="paper-card__body">
+
+                <div class="analysis-phase">
+                  <div class="phase-label phase-label--teal">// The question</div>
+                  <h4>Biological motivation</h4>
+                  <p>The postsynaptic density (PSD) is one of the most protein-dense structures in biology — hundreds of proteins concentrated at the tip of dendritic spines, organising glutamate receptors, scaffolding proteins, and downstream signalling enzymes. Mutations in PSD genes cause a wide variety of neuropsychiatric disorders: autism spectrum disorder (ASD), schizophrenia, and intellectual disability. The question: when the proteome of the PSD is mapped as a PPI network, do the disease-causing mutations cluster in particular functional modules, and does this clustering explain why different mutations can cause similar or overlapping clinical phenotypes?</p>
+                </div>
+
+                <div class="analysis-phase analysis-phase--amber">
+                  <div class="phase-label phase-label--amber">// Step 1: Proteomics → protein list</div>
+                  <h4>AP-MS to define the PSD proteome</h4>
+                  <p>The study first biochemically purified the PSD fraction from mouse forebrain (a standard protocol involving differential centrifugation and detergent extraction). The protein composition was determined by LC-MS/MS — identifying ~1,461 proteins. This proteomics-derived protein list was then used as the input for PPI network analysis, rather than a manually curated gene list. This approach ensures the network reflects the actual protein context of the biological compartment being studied.</p>
+                  <div class="callout callout--info" style="margin-top:0.75rem;">
+                    <div class="callout__icon">💡</div>
+                    <div>
+                      <div class="callout__title">Why this matters for enrichment analysis background</div>
+                      <p>By starting with a proteomics-defined PSD proteome (~1,461 proteins), the researchers used this as the custom background for enrichment analysis — not all human genes. This is the correct approach: enrichment analysis of "100 signalling proteins from the PSD" should be tested against "all 1,461 PSD proteins", not all ~20,000 human genes. Using the wrong background would greatly inflate enrichment statistics.</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="analysis-phase analysis-phase--rose">
+                  <div class="phase-label phase-label--rose">// Step 2: Disease gene overlay</div>
+                  <h4>Mapping disease mutations onto the network</h4>
+                  <p>The PSD proteome was cross-referenced with three disease gene databases: the SFARI autism gene database, the SZGene schizophrenia gene database, and OMIM intellectual disability genes. This identified 197 PSD proteins with documented links to at least one of these disorders. These disease-associated proteins were then mapped onto the STRING PPI network of the full PSD proteome and their positions analysed. The key finding: disease-associated PSD proteins were <em>not</em> randomly distributed throughout the network — they were significantly enriched in specific dense modules (identified by MCODE) involved in glutamate receptor signalling and cytoskeletal remodelling.</p>
+                  <div class="insight-box">
+                    <div class="insight-box__label">// key insight for readers</div>
+                    <p>This shows how PPI network analysis is used to demonstrate <em>disease convergence</em>. Mutations in SHANK3 (autism), SYNGAP1 (intellectual disability), and GRIN2B (schizophrenia) are caused by mutations in completely different proteins — but network analysis shows they all interact with PSD-95 (DLG4), all enrich the same GO terms (regulation of AMPA receptor activity, dendritic spine morphogenesis), and all fall in the same MCODE module. The clinical overlap between these disorders is explained by their shared network position.</p>
+                  </div>
+                </div>
+
+                <div class="analysis-phase analysis-phase--lav">
+                  <div class="phase-label phase-label--lav">// Step 3: Enrichment interpretation</div>
+                  <h4>GO enrichment of the disease module</h4>
+                  <p>The 197 disease-associated PSD proteins were submitted to g:Profiler using the full PSD proteome as background. Top enriched GO:BP terms: "regulation of AMPA receptor activity" (q = 4.1×10⁻¹¹), "positive regulation of synapse assembly" (q = 2.3×10⁻⁹), "dendritic spine morphogenesis" (q = 5.6×10⁻⁸), "long-term synaptic potentiation" (q = 1.2×10⁻⁷). CC enrichment confirmed "postsynaptic density" (q = 3.4×10⁻¹⁵) and "NMDA receptor complex" (q = 7.8×10⁻⁹). This enrichment pattern — convergent on synaptic plasticity mechanisms — supported a unifying hypothesis for diverse neuropsychiatric disorders: they may all fundamentally disrupt the molecular machinery for activity-dependent synaptic modification.</p>
+                </div>
+
+                <div class="analysis-phase">
+                  <div class="phase-label phase-label--teal">// What you'd do today</div>
+                  <h4>Modern replication protocol</h4>
+                  <p><strong>1.</strong> Download the PSD proteome from a recent AP-MS study (e.g. the SynGO database at syngoportal.org — curates synaptic proteomics datasets). <strong>2.</strong> Cross-reference with current disease gene lists: SFARI Gene for ASD (sfari.org), the Psychiatric Genomics Consortium GWAS for schizophrenia, and OMIM for ID genes. <strong>3.</strong> Submit the overlapping proteins to Metascape with the full PSD proteome as custom background. <strong>4.</strong> Use Cytoscape to produce a network coloured by disease association — nodes coloured by which disorder(s) their gene is linked to. <strong>5.</strong> Use g:Profiler with custom background for the formal enrichment table in supplementary data.</p>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <!-- Example 4: Schizophrenia -->
+          <div class="content-section reveal" id="example-4">
+            <span class="section-label">// example 4</span>
+            <div class="paper-card">
+              <div class="paper-card__header">
+                <div class="paper-card__meta">
+                  <span class="badge badge--lavender">Schizophrenia</span>
+                  <span class="badge badge--secondary">GWAS → PPI → Drug Targets</span>
+                </div>
+                <div class="paper-card__title">Representative study type: PPI network analysis of schizophrenia GWAS loci reveals dopamine/glutamate convergence and repositioning candidates</div>
+                <div class="paper-card__authors">Representative approach: Largest SCZ GWAS (Trubetskoy et al., 2022, <em>Nature</em>; ~269 independent risk loci) → STRING network → hub and module analysis → drug target overlay.</div>
+              </div>
+
+              <div class="paper-card__body">
+                <h4>The biological question</h4>
+                <p>Schizophrenia (SCZ) is a severe psychiatric disorder affecting ~1% of the global population. Unlike Alzheimer's or Parkinson's disease, there are no single high-penetrance causal mutations — instead, risk is distributed across hundreds of common variants of tiny individual effect, plus a smaller number of rare copy number variants. The largest GWAS to date (Trubetskoy et al., 2022) identified 287 variants across 269 independent loci. The challenge: what do these 269 loci actually <em>do</em>? Most GWAS hits lie in non-coding regions, making biological interpretation hard. PPI network analysis is used to map the protein products of the nearest genes onto an interaction network, asking: do these genes cluster into coherent biological modules? Do they converge on pathways we already know are relevant to SCZ (dopamine, glutamate, synapse)? And do any hub proteins in those modules have existing drugs?</p>
+
+                <h4>Building the SCZ PPI network — from GWAS to proteins</h4>
+                <p>The first challenge is converting GWAS loci into a gene list. For each of the 269 independent loci, the nearest protein-coding gene is assigned as a candidate. For loci with stronger evidence (eQTLs showing the variant regulates a specific gene's expression in brain tissue, e.g. from GTEx v8), the regulated gene is used instead of positional assignment. This is critical: positional assignment is imprecise, and eQTL-informed mapping substantially improves biological signal. The resulting gene list (~250–300 genes) becomes the PPI query input.</p>
+                <p>This list is submitted to STRING v12 with confidence ≥ 0.7, experimental and curated-database channels only (text mining excluded). Because the input contains hundreds of genes from a GWAS, the resulting raw network will be large (~1,000–3,000 nodes once first-shell interactors are included). Practically: Metascape is used for automated analysis at this scale; manual Cytoscape work is better suited to a focused subset.</p>
+
+                <div class="callout callout--key">
+                  <div class="callout__icon">🧠</div>
+                  <div>
+                    <div class="callout__title">Why SCZ is analytically different from AD/PD</div>
+                    <p>In Alzheimer's analysis (Example 1), you start with a manageable set of well-established causal genes (APP, PSEN1/2, MAPT) plus GWAS hits. In SCZ, there are essentially <em>no</em> high-confidence Mendelian causal genes — almost everything comes from GWAS. This means your input is inherently nosier and the network signal-to-noise is lower. Methodological rigour matters even more: using eQTL mapping rather than positional assignment, running permutation tests to confirm your network has more connectivity than a randomly-sampled gene list of the same size, and using a 0.7+ threshold are all non-negotiable in this context.</p>
+                  </div>
+                </div>
+
+                <h4>Module detection: dopamine and glutamate converge</h4>
+                <p>After MCODE clustering in Metascape, two modules consistently emerge at the top of enrichment significance. The first centres on <strong>dopamine signalling</strong>: DRD2 (the primary target of all approved antipsychotics) emerges as the highest-degree hub, interacting with COMT, DRD1, KCNB1, and several G-protein subunits (GNAS, GNB1). The GO enrichment of this module is dominated by "G protein-coupled receptor signalling" and "dopamine receptor binding." The second and typically larger module centres on <strong>glutamate/NMDA receptor signalling</strong>: GRIN2A, GRIN2B, GRIA1, and the postsynaptic density scaffold DLGAP1 all appear as high-degree nodes, with enrichment on "NMDA receptor complex" and "regulation of synaptic transmission." A third module — less consistently replicated but increasingly reported — involves immune and complement genes (C4A, CSMD1, CLU), reflecting the contribution of synaptic pruning pathways to SCZ risk.</p>
+
+                <h4>The DRD2 hub: obvious in hindsight, but the network confirms it mechanistically</h4>
+                <p>DRD2 typically has the highest betweenness centrality in the SCZ PPI network. A student's first reaction might be: "of course DRD2 is the hub — it's the antipsychotic target everyone already knows about." This is a reasonable concern, but the network adds something that clinical pharmacology alone cannot: it shows <em>which other GWAS-implicated proteins connect to DRD2</em>, and thus explains why multiple seemingly unrelated risk loci all funnel into the same biological process. The network confirms that the dopaminergic signal in SCZ GWAS is not noise — it is mechanistically coherent.</p>
+
+                <div class="callout callout--insight">
+                  <div class="callout__icon">💡</div>
+                  <div>
+                    <div class="callout__title">Hub identification at high threshold: why 0.9 matters here specifically</div>
+                    <p>In a large GWAS-derived network, use 0.7 to build the full landscape and detect modules. Then, for drug target prioritisation, rerun with 0.9: at this threshold, only interactions with multiple independent experimental validations survive. DRD2, GRIN2A, and GRIN2B should remain high-degree nodes at 0.9 — if a proposed hub disappears at 0.9, it may be an artefact of weaker evidence chains. This two-threshold approach lets you distinguish well-validated hubs (drug target candidates) from contextually important but less-evidenced connectors.</p>
+                  </div>
+                </div>
+
+                <h4>Drug repurposing overlay: from network to clinic</h4>
+                <p>Hub proteins are cross-referenced with the Drug-Gene Interaction Database (DGIdb) and ChEMBL. DRD2 is already targeted by all approved antipsychotics (haloperidol, risperidone, clozapine), confirming the approach works for known targets. More interestingly, GRIN2A and GRIN2B emerge as druggable targets in the glutamate module — and this motivated clinical trials of NMDA modulators (e.g. D-cycloserine, glycine-site agonists) as adjuncts to antipsychotics. The complement module points to C4A, motivating interest in anti-inflammatory strategies.</p>
+
+                <h4>Enrichment analysis: what the modules biologically mean</h4>
+                <p>Submitting the dopamine module genes to g:Profiler (background: all human protein-coding genes; BH correction, q &lt; 0.05) returns: "dopamine receptor signalling pathway" (GO:0007212, q = 1.3×10⁻⁸), "adenylyl cyclase-activating dopamine receptor signalling" (GO:0007191, q = 2.1×10⁻⁷), "regulation of postsynaptic membrane potential" (q = 4.5×10⁻⁶). The glutamate module returns: "NMDA receptor complex" (GO:0017146, q = 5.6×10⁻⁹), "long-term potentiation" (GO:0060291, q = 3.2×10⁻⁷), "ionotropic glutamate receptor signalling" (q = 1.8×10⁻⁶). These results match the dominant pharmacological hypotheses for SCZ (dopamine hypothesis, glutamate/NMDA hypofunction hypothesis) — the network is providing molecular resolution to clinical observations made decades earlier.</p>
+
+                <h4>Modern replication protocol</h4>
+                <p><strong>1.</strong> Download the Trubetskoy et al. 2022 Supplementary Table of GWAS loci; use the eQTL-mapped gene assignments where available (GTEx brain, PsychENCODE). <strong>2.</strong> Query the full gene list in STRING v12 (confidence ≥ 0.7, experimental + curated databases only; first-shell expansion to capture direct interactors of the GWAS genes). <strong>3.</strong> Import to Metascape for MCODE clustering — expect a dopamine module and a glutamate module to appear in the top 5 clusters. <strong>4.</strong> For hub subnetwork analysis, re-export the top 2 MCODE modules to Cytoscape and reapply edge filter ≥ 0.9 to identify the most-evidenced hubs. <strong>5.</strong> Cross-reference hubs against DGIdb (dgidb.org) and ChEMBL. <strong>6.</strong> Run g:Profiler enrichment on each MCODE module separately using all human protein-coding genes as background.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lessons -->
+          <div class="content-section reveal" id="lessons">
+            <span class="section-label">// cross-cutting lessons</span>
+            <h2>What all four examples have in common</h2>
+            <p>Looking across the three examples, several methodological patterns emerge that characterise rigorous PPI network analysis in neuroscience:</p>
+
+            <div class="grid-2" style="gap:1.25rem; margin:1.5rem 0;">
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem; color:var(--teal);">The network reveals what lists cannot</h4>
+                <p style="font-size:0.87rem;">In all three cases, the individual gene/protein list was interpretable but limited. It was the interaction context — who interacts with whom, which modules form, where disease genes cluster — that generated the hypothesis. This is the fundamental argument for PPI network analysis over simple gene list analysis.</p>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem; color:var(--amber);">Background matters</h4>
+                <p style="font-size:0.87rem;">Example 3 used the PSD proteome as its enrichment background — not all human genes. Example 1 used all human genes as background (appropriate since the input was GWAS genes, not a tissue-specific proteome). Always match the background to the experimental context of how your input list was generated.</p>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem; color:var(--lavender);">Convergence is the finding</h4>
+                <p style="font-size:0.87rem;">Each study used a network to demonstrate convergence — disparate disease genes converging on shared interaction modules and biological processes. This "convergence argument" is now a standard pattern in neuropsychiatric genetics. PPI analysis is the primary tool used to make it.</p>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem; color:var(--rose);">Hub status needs validation</h4>
+                <p style="font-size:0.87rem;">All four examples identified hub proteins, but all were careful to contextualise hub status: APP is a hub partly because of publication bias (extensively studied proteins have more curated interactions). Cross-referencing with BioGRID, checking experimental evidence types, and comparing hubs against tissue-specific expression data all strengthen the argument that a hub is genuinely biologically important.</p>
+              </div>
+              <div class="card">
+                <h4 style="margin-bottom:0.6rem; color:var(--lavender);">GWAS input needs eQTL mapping, not just proximity</h4>
+                <p style="font-size:0.87rem;">The schizophrenia example illustrates a critical upstream step that AD and PD analyses (starting from known causal genes) do not require: converting GWAS loci to genes. Positional assignment (nearest gene) is an imprecise shortcut. eQTL-informed mapping — using GTEx or PsychENCODE to find which gene's expression is controlled by each risk variant in brain tissue — produces a biologically cleaner input list and stronger downstream PPI signal.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapter nav -->
+          <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top:1px solid var(--border); margin-top:2rem;">
+            <a href="04-network-analysis.html" class="btn btn--ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Chapter 4: Networks
+            </a>
+            <a href="06-best-practices.html" class="btn btn--primary">
+              Chapter 6: Best Practices
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+        </div>
+
+        <aside>
+          <nav class="toc" aria-label="Table of contents">
+            <div class="toc__title">In this chapter</div>
+            <ul class="toc__list">
+              <li><a href="#overview">How to read examples</a></li>
+              <li><a href="#example-1">Ex. 1: Alzheimer's Disease</a></li>
+              <li><a href="#example-2">Ex. 2: Parkinson's Disease</a></li>
+              <li><a href="#example-3">Ex. 3: Synaptic Plasticity</a></li>
+              <li><a href="#example-4">Ex. 4: Schizophrenia</a></li>
+              <li><a href="#lessons">Cross-cutting lessons</a></li>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · Chapter 5: Worked Examples</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="06-best-practices.html">Next: Best Practices →</a></li>
+          <li><a href="07-references.html">References</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/interactive.js"></script>
+</body>
+</html>

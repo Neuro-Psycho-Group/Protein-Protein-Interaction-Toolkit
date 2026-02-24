@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 6: Best Practices — PPI Guidebook</title>
+  <meta name="description" content="Best practices for PPI research: threshold selection, statistical correction, publication bias, reproducibility, and how to report network analysis in a paper." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    .content-section { margin-bottom:4rem; scroll-margin-top:90px; }
+    .content-section h2 { font-size:clamp(1.5rem,3vw,2rem); margin-bottom:1.25rem; }
+    .content-section h3 { font-size:1.2rem; margin:2rem 0 0.75rem; }
+    .content-section p  { font-size:0.97rem; }
+
+    .do-dont {
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:1rem;
+      margin:1.5rem 0;
+    }
+    @media(max-width:640px){ .do-dont { grid-template-columns:1fr; } }
+    .do-card { background:rgba(0,201,167,0.05); border:1px solid rgba(0,201,167,0.2); border-radius:12px; padding:1.25rem; }
+    .dont-card { background:rgba(255,107,138,0.05); border:1px solid rgba(255,107,138,0.2); border-radius:12px; padding:1.25rem; }
+    .do-card__label { font-family:var(--font-mono); font-size:0.68rem; color:var(--teal); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem; }
+    .dont-card__label { font-family:var(--font-mono); font-size:0.68rem; color:var(--rose); letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem; }
+    .do-card ul, .dont-card ul { list-style:none; display:flex; flex-direction:column; gap:0.4rem; }
+    .do-card li, .dont-card li { font-size:0.85rem; color:var(--text-secondary); padding-left:1.25rem; position:relative; line-height:1.55; }
+    .do-card li::before { content:'✓'; position:absolute; left:0; color:var(--teal); }
+    .dont-card li::before { content:'✗'; position:absolute; left:0; color:var(--rose); }
+
+    .checklist { list-style:none; display:flex; flex-direction:column; gap:0.6rem; }
+    .checklist li { display:flex; gap:0.75rem; align-items:flex-start; font-size:0.88rem; color:var(--text-secondary); line-height:1.55; }
+    .checklist li input[type=checkbox] { margin-top:0.1rem; accent-color:var(--teal); cursor:pointer; flex-shrink:0; width:16px; height:16px; }
+    .checklist li label { cursor:pointer; }
+
+    .methods-template {
+      background:var(--navy-card);
+      border:1px solid var(--border-teal);
+      border-radius:12px;
+      padding:1.5rem;
+      font-family:var(--font-mono);
+      font-size:0.82rem;
+      color:var(--text-secondary);
+      line-height:1.8;
+      position:relative;
+    }
+    .methods-template__label {
+      position:absolute;
+      top:-0.6rem; left:1rem;
+      background:var(--navy);
+      padding:0 0.5rem;
+      font-size:0.65rem;
+      color:var(--teal);
+      letter-spacing:0.1em;
+      text-transform:uppercase;
+    }
+    .methods-template em { color:var(--amber); font-style:normal; }
+    .methods-template strong { color:var(--teal); }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><span class="nav__logo-dot"></span>PPI Guide</a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" style="background:radial-gradient(ellipse 80% 60% at 50% 50%,rgba(0,201,167,0.06) 0%,transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">Chapter 06</span>
+        <span class="badge badge--teal">Best Practices</span>
+      </div>
+      <h1 class="animate-fade-up">Best Practices &amp; Common Pitfalls</h1>
+      <p class="animate-fade-up animate-fade-up--d1">The difference between a PPI analysis that gets accepted and one that gets rejected at review often comes down to a handful of methodological choices. This chapter covers what reviewers look for, what errors to avoid, and how to write a Methods section that stands up to scrutiny.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="reading-layout">
+        <div>
+
+          <!-- 6.1 Thresholds -->
+          <div class="content-section reveal" id="thresholds">
+            <span class="section-label">// section 6.1</span>
+            <h2>Choosing confidence thresholds</h2>
+            <p>The STRING confidence threshold is the single most consequential parameter in a PPI network analysis. There is no universally "correct" threshold — the right choice depends on your biological question, your input list size, and the level of evidence you want your network to reflect.</p>
+
+            <h3>Where do these numbers actually come from?</h3>
+            <p>STRING's combined confidence score is not arbitrary — it is a probabilistic estimate of whether two proteins are functionally associated, benchmarked against the <em>E. coli</em> operonic gold standard and verified against COG (Clusters of Orthologous Groups) across hundreds of organisms. A score of 0.7 means STRING estimates a roughly 70% probability that the interaction is real given the available evidence. A score of 0.9 means ~90% confidence. This matters because:</p>
+            <ul style="margin:0.75rem 0 1rem 1.5rem; font-size:0.95rem; line-height:1.8;">
+              <li>At 0.4 (medium), STRING includes many interactions supported only by text mining or genomic co-occurrence — these have high false-positive rates in mammals. Typical false-positive rates at 0.4: ~40–50% in curated benchmarks.</li>
+              <li>At 0.7 (high), the network retains interactions that have at least some experimental validation (co-expression, co-immunoprecipitation, yeast two-hybrid) or strong curated database evidence (e.g. KEGG, Reactome). Benchmarked false-positive rate drops to approximately 20–30%. This is an acceptable trade-off for exploratory-to-confirmatory analyses — you keep enough of the biologically meaningful network without drowning in noise.</li>
+              <li>At 0.9 (very high), the set is restricted to interactions with multiple independent experimental confirmations or highly curated mechanistic evidence. False-positive rate: approximately 5–10%. The network is much smaller and sparser, but almost everything in it is real.</li>
+            </ul>
+
+            <div class="callout callout--key">
+              <div class="callout__icon">🔑</div>
+              <div>
+                <div class="callout__title">Why 0.7 for network construction, 0.9 for hub subnetwork — the logic</div>
+                <p><strong>0.7 for the full network:</strong> You want to capture all proteins that might plausibly be part of the disease-relevant interaction landscape, including those where evidence is strong but not exhaustive. A 0.7 network preserves important indirect connections between disease gene modules that would disappear at 0.9. This is the scaffold for module detection (MCODE), enrichment analysis, and visualising the disease landscape.</p>
+                <p style="margin-top:0.6rem;"><strong>0.9 for hub identification specifically:</strong> When you're claiming that protein X is a hub and therefore a drug target candidate, you need to be confident that X's high degree isn't inflated by weak or spurious edges. At 0.9, each edge connecting X to another node has been independently validated multiple times. If X remains a hub at 0.9, you have a strong, defensible argument for its centrality. If it disappears at 0.9 (e.g. it had many 0.7–0.88 edges but few 0.9 ones), it may be central in a weakly-evidenced way — still worth noting, but not a primary drug target claim. This is why papers routinely report a 0.7 main network with a 0.9 hub subnetwork inset — they serve different inferential purposes.</p>
+              </div>
+            </div>
+
+            <h3>Practical guidance by input type</h3>
+            <div class="callout callout--note" style="margin:1rem 0;">
+              <div class="callout__icon">📏</div>
+              <div>
+                <div class="callout__title">Rule of thumb thresholds for different goals</div>
+                <p><strong>Small focused list (10–30 known genes, e.g. AD causal genes):</strong> use 0.7 — at 0.9 the network may become too sparse to be informative. <strong>Medium GWAS-derived list (50–300 genes):</strong> 0.7 for full network, 0.9 for hub subnetwork — this is the most common published approach. <strong>Large proteomics-derived list (500+ proteins, e.g. full PSD proteome):</strong> consider 0.9 as the primary threshold to avoid a hairball; 0.7 may produce an uninterpretable network at this scale. Always turn off text mining and co-occurrence channels when aiming for ≥ 0.7 experimental-only networks.</p>
+              </div>
+            </div>
+
+            <div class="do-dont">
+              <div class="do-card">
+                <div class="do-card__label">✓ Do</div>
+                <ul>
+                  <li>State your threshold explicitly in the Methods: "STRING v12, confidence ≥ 0.7, experimental and database evidence channels only"</li>
+                  <li>Justify your threshold choice with reference to your input list size and goal</li>
+                  <li>Run a sensitivity analysis: report whether your key hub conclusions hold at 0.4, 0.7, and 0.9 thresholds</li>
+                  <li>Use separate thresholds for network construction (0.7) vs hub identification (0.9 edges for the hub subnetwork)</li>
+                </ul>
+              </div>
+              <div class="dont-card">
+                <div class="dont-card__label">✗ Don't</div>
+                <ul>
+                  <li>Use 0.4 (medium confidence) for publication analysis without strong justification — reviewers will flag this</li>
+                  <li>Use the same threshold for a 10-gene input (use 0.7+) as for a 500-gene input (might need 0.9+ to avoid hairball networks)</li>
+                  <li>Treat the default STRING threshold as automatically appropriate for all analyses</li>
+                  <li>Include "text mining" channel edges at low thresholds without noting that text mining ≠ experimental evidence</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6.2 Publication bias -->
+          <div class="content-section reveal" id="bias">
+            <span class="section-label">// section 6.2</span>
+            <h2>Publication bias and study bias</h2>
+            <p>
+              This is one of the most important — and most underappreciated — limitations of PPI database analysis. The interactions in STRING, BioGRID, and IntAct were detected by researchers studying proteins that were already of interest. Proteins like APP, TP53, EGFR, and MAPT have thousands of curated interactions because they have been the focus of thousands of studies. Lesser-studied proteins may have equally important biology but far fewer documented interactions simply because nobody has looked.
+            </p>
+
+            <div class="grid-2" style="gap:1.25rem; margin:1.5rem 0;">
+              <div class="card card--amber">
+                <h4 style="color:var(--amber); margin-bottom:0.6rem;">The consequence</h4>
+                <p style="font-size:0.87rem;">Well-studied proteins appear as hubs partly by publication bias, not purely by biological importance. When you report TP53 as a hub in your AD network, a reviewer may reasonably ask: "Is TP53 a hub because it genuinely mediates AD-relevant biology, or because it's the most-studied protein in the genome?" You need to have an answer ready.</p>
+              </div>
+              <div class="card card--teal">
+                <h4 style="color:var(--teal); margin-bottom:0.6rem;">How to address it</h4>
+                <p style="font-size:0.87rem;">Acknowledge the limitation explicitly in your Discussion. If a known "promiscuous" hub (TP53, EGFR, ACTB) appears at the top of your hub list, discuss whether it has specific known roles in your disease of interest. Use tissue-specific expression data (Human Protein Atlas, GTEx) to verify that your hub proteins are actually expressed in the relevant tissue.</p>
+              </div>
+            </div>
+
+            <div class="callout callout--warn">
+              <div class="callout__icon">⚠️</div>
+              <div>
+                <div class="callout__title">The "promiscuous hub" problem</div>
+                <p>TP53, ACTB (β-actin), HSP90AA1, and EGFR appear as hubs in nearly every PPI network analysis of any disease because they are the most-studied proteins in biology. When these proteins appear in your hub list, check: (1) Do they have documented functional roles in your specific disease? (2) Are they expressed in the relevant cell type? (3) Is their hub status driven primarily by text mining or by experimental evidence? If the answers are "no", "no", and "text mining" — consider excluding them or presenting them separately with appropriate caveats.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 6.3 Reporting standards -->
+          <div class="content-section reveal" id="reporting">
+            <span class="section-label">// section 6.3</span>
+            <h2>How to write a PPI Methods section</h2>
+            <p>A reproducible PPI analysis requires reporting enough detail that another researcher could replicate your exact network. Many published papers fall short of this standard. Here is a template for a complete PPI Methods section:</p>
+
+            <div class="methods-template reveal">
+              <div class="methods-template__label">Methods template — PPI network analysis</div>
+              <strong>PPI network construction.</strong> Protein–protein interaction data were retrieved from <em>STRING database v12.0</em> (Szklarczyk et al., 2023) for <em>Homo sapiens</em>. <em>[Input gene list description]</em> was queried using <em>[gene symbols / UniProt IDs]</em> as input identifiers. Network edges were restricted to interactions with a combined confidence score ≥ <em>0.7</em>, incorporating only <em>experimentally determined interactions and curated database interactions</em>; text mining, gene neighbourhood, gene fusion, and co-occurrence channels were excluded to maximise specificity. The resulting network comprised <em>N</em> nodes and <em>M</em> edges.
+
+              <br/><br/>
+
+              <strong>Enrichment analysis.</strong> Gene Ontology (GO) and pathway enrichment analysis was performed using <em>g:Profiler v2.0</em> (Raudvere et al., 2019). Gene symbols were submitted against the <em>Homo sapiens</em> annotation database. Enrichment was tested across GO Biological Process (BP), Molecular Function (MF), Cellular Component (CC), KEGG, and Reactome annotation sources. Multiple testing correction was applied using the g:SCS method; significance threshold: q &lt; 0.05. The background gene set was <em>[all human protein-coding genes / [specific tissue proteome, n = X]]</em>.
+
+              <br/><br/>
+
+              <strong>Network visualisation and module detection.</strong> Network files were imported into <em>Metascape</em> (Zhou et al., 2019) for automated MCODE module detection (minimum degree threshold: 2; node score cutoff: 0.2; K-core: 2; maximum depth: 100). Module annotation was performed by enrichment against the same GO and pathway databases described above. Final network visualisation was performed in <em>Cytoscape v3.10</em> (Shannon et al., 2003). Node size was scaled proportionally to degree centrality; edge width was scaled to STRING combined confidence score. Betweenness centrality was calculated using the NetworkAnalyzer plugin.
+            </div>
+
+            <p style="margin-top:1rem; font-size:0.88rem; color:var(--text-secondary);">Replace italicised portions with your actual values. This level of detail is the minimum required for reproducibility — most reviewers in computational biology will expect all of this information.</p>
+          </div>
+
+          <!-- 6.4 Reproducibility -->
+          <div class="content-section reveal" id="reproducibility">
+            <span class="section-label">// section 6.4</span>
+            <h2>Reproducibility checklist</h2>
+            <p>Before submitting a paper containing PPI network analysis, verify you can check all of the following:</p>
+
+            <div class="card" style="margin:1.5rem 0;">
+              <h4 style="margin-bottom:1.25rem;">Pre-submission reproducibility checklist</h4>
+              <ul class="checklist" id="reproducibility-checklist">
+                <li><input type="checkbox" id="c1"><label for="c1">Database version stated (e.g. "STRING v12.0, accessed January 2024")</label></li>
+                <li><input type="checkbox" id="c2"><label for="c2">Confidence threshold stated and justified</label></li>
+                <li><input type="checkbox" id="c3"><label for="c3">Evidence channels specified (experimental only, or which channels included)</label></li>
+                <li><input type="checkbox" id="c4"><label for="c4">Input gene list provided as supplementary table with identifiers (symbols and Ensembl/UniProt IDs)</label></li>
+                <li><input type="checkbox" id="c5"><label for="c5">Network node and edge tables provided as supplementary data (downloadable CSV/TSV)</label></li>
+                <li><input type="checkbox" id="c6"><label for="c6">Enrichment tool version stated and correction method specified</label></li>
+                <li><input type="checkbox" id="c7"><label for="c7">Background gene set defined and justified</label></li>
+                <li><input type="checkbox" id="c8"><label for="c8">Adjusted p-values (not raw p-values) reported in all enrichment tables</label></li>
+                <li><input type="checkbox" id="c9"><label for="c9">Hub identification criteria stated (e.g. "top 10% by degree" or "degree > mean + 2SD")</label></li>
+                <li><input type="checkbox" id="c10"><label for="c10">Network figure includes legend explaining node size, colour, and edge width encoding</label></li>
+                <li><input type="checkbox" id="c11"><label for="c11">Publication bias of known promiscuous hubs (TP53, EGFR, ACTB) acknowledged if they appear</label></li>
+                <li><input type="checkbox" id="c12"><label for="c12">Tissue-specific expression of hub proteins verified (Human Protein Atlas or similar)</label></li>
+                <li><input type="checkbox" id="c13"><label for="c13">MCODE parameters reported if module detection was used</label></li>
+                <li><input type="checkbox" id="c14"><label for="c14">Cytoscape session file or equivalent deposited in supplementary materials or data repository</label></li>
+              </ul>
+            </div>
+          </div>
+
+          <!-- 6.5 Common reviewer criticisms -->
+          <div class="content-section reveal" id="reviewer-criticisms">
+            <span class="section-label">// section 6.5</span>
+            <h2>Common reviewer criticisms — and how to preempt them</h2>
+
+            <div class="accordion reveal">
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  "The authors use uncorrected p-values for enrichment analysis"
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p><strong>How to preempt:</strong> Always report FDR-adjusted q-values. State the correction method (g:SCS, Benjamini–Hochberg) explicitly. In your results text, write "FDR q = X.XX" not "p = X.XX" for enrichment results. If you want to include a supplementary table with raw p-values for completeness, clearly label the column "raw p-value (uncorrected)" to distinguish from the adjusted values.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  "The STRING threshold used (0.4) is too low for reliable conclusions"
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p><strong>How to preempt:</strong> Use 0.7 as your primary threshold. If you use 0.4 for exploratory analysis, clearly label it as exploratory and present your main conclusions using the 0.7 or 0.9 threshold network. A supplementary analysis at multiple thresholds showing that key hub proteins are stable across thresholds significantly strengthens a paper's robustness.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  "The identified hub proteins are generic hubs seen in any PPI analysis"
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p><strong>How to preempt:</strong> In your Discussion, acknowledge that some high-degree proteins (TP53, EGFR) reflect publication bias rather than disease-specific biology. Focus your interpretation on hubs with disease-specific literature support and expression in the relevant tissue. Consider presenting two categories: "generic hubs" and "disease-specific hubs" (e.g. proteins uniquely highly connected within your disease gene network but not in the whole genome network).</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  "The network analysis is descriptive — no functional validation provided"
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p><strong>How to preempt:</strong> This is the most common criticism and reflects a genuine limitation of purely computational PPI analyses. Address it by: (1) framing your analysis explicitly as hypothesis-generating; (2) connecting your findings to existing experimental literature; (3) where possible, including at least one orthogonal validation (e.g. verifying a key predicted interaction by co-IP, or confirming hub expression in disease tissue by immunohistochemistry). Computational-only papers are publishable in the right journals, but experimental validation strengthens the impact significantly.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  "The enrichment background is inappropriate"
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p><strong>How to preempt:</strong> Always explicitly state your background gene set in the Methods. If your input genes came from an RNA-seq experiment, use expressed genes as background. If they came from a proteomics study, use the full detected proteome as background. If they came from a GWAS or literature curation without a specific tissue context, all human protein-coding genes is acceptable. The key is to match the background to the context in which your input list was generated.</p>
+                </div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapter nav -->
+          <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top:1px solid var(--border); margin-top:2rem;">
+            <a href="05-worked-examples.html" class="btn btn--ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Chapter 5: Examples
+            </a>
+            <a href="07-references.html" class="btn btn--primary">
+              References
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+        </div>
+
+        <aside>
+          <nav class="toc" aria-label="Table of contents">
+            <div class="toc__title">In this chapter</div>
+            <ul class="toc__list">
+              <li><a href="#thresholds">6.1 Confidence thresholds</a></li>
+              <li><a href="#bias">6.2 Publication bias</a></li>
+              <li><a href="#reporting">6.3 Methods section template</a></li>
+              <li><a href="#reproducibility">6.4 Reproducibility checklist</a></li>
+              <li><a href="#reviewer-criticisms">6.5 Reviewer criticisms</a></li>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · Chapter 6: Best Practices</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="07-references.html">References →</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/interactive.js"></script>
+</body>
+</html>

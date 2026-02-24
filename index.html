@@ -1,0 +1,945 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PPI Guidebook — Protein–Protein Interactions for Neuroscience Students</title>
+  <meta name="description" content="An interactive, beginner-friendly guidebook to protein–protein interactions, STRING, Metascape, Cytoscape, gene ontology, and network analysis for neuroscience undergraduates." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    /* ── Landing-specific styles ─────────────────────────── */
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      position: relative;
+      overflow: hidden;
+      padding-top: 80px;
+    }
+
+    #hero-network {
+      position: absolute;
+      inset: 0;
+      z-index: 0;
+    }
+
+    .hero::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 70% 60% at 50% 50%, transparent 30%, var(--navy) 100%);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .hero__content {
+      position: relative;
+      z-index: 2;
+      max-width: 780px;
+    }
+
+    .hero__eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.6rem;
+      padding: 0.4rem 1rem;
+      background: rgba(0,201,167,0.08);
+      border: 1px solid rgba(0,201,167,0.2);
+      border-radius: 100px;
+      margin-bottom: 2rem;
+      font-family: var(--font-mono);
+      font-size: 0.75rem;
+      color: var(--teal);
+      letter-spacing: 0.08em;
+    }
+
+    .hero__eyebrow::before {
+      content: '';
+      width: 6px; height: 6px;
+      background: var(--teal);
+      border-radius: 50%;
+      animation: pulse-dot 2s infinite;
+    }
+
+    .hero h1 {
+      margin-bottom: 1.5rem;
+      font-size: clamp(2.8rem, 6vw, 5rem);
+    }
+
+    .hero h1 .line2 {
+      display: block;
+      color: var(--text-muted);
+      font-size: 0.72em;
+    }
+
+    .hero__sub {
+      font-size: clamp(1rem, 2vw, 1.2rem);
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin-bottom: 2.5rem;
+      line-height: 1.8;
+    }
+
+    .hero__actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1rem;
+      align-items: center;
+    }
+
+    .hero__scroll-hint {
+      position: absolute;
+      bottom: 2.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.5rem;
+      color: var(--text-muted);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      font-family: var(--font-mono);
+    }
+
+    .hero__scroll-hint svg {
+      animation: float 2s ease-in-out infinite;
+    }
+
+    /* Stat strip */
+    .stats-strip {
+      background: var(--navy-card);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      padding: 2rem 0;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 0;
+      divide: x;
+    }
+
+    .stat-item {
+      padding: 0.75rem 2rem;
+      border-right: 1px solid var(--border);
+      text-align: center;
+    }
+
+    .stat-item:last-child { border-right: none; }
+
+    .stat-item__num {
+      font-family: var(--font-display);
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--teal);
+      line-height: 1;
+      display: block;
+      margin-bottom: 0.4rem;
+    }
+
+    .stat-item__label {
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      letter-spacing: 0.05em;
+    }
+
+    /* What is a PPI section */
+    .what-section { padding: var(--section-pad) 0; }
+
+    .definition-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: clamp(2rem, 5vw, 3.5rem);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .definition-card::before {
+      content: '';
+      position: absolute;
+      top: -60px; right: -60px;
+      width: 240px; height: 240px;
+      background: radial-gradient(circle, rgba(0,201,167,0.08), transparent 70%);
+      border-radius: 50%;
+    }
+
+    .definition-card .big-quote {
+      font-family: var(--font-display);
+      font-size: clamp(3rem, 6vw, 5rem);
+      font-weight: 800;
+      color: rgba(0,201,167,0.1);
+      line-height: 1;
+      margin-bottom: -1rem;
+      position: relative;
+      z-index: 0;
+    }
+
+    .definition-card blockquote {
+      font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+      color: var(--text-primary);
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.5;
+      position: relative;
+      z-index: 1;
+    }
+
+    .analogy-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 1.25rem;
+      margin-top: 2rem;
+    }
+
+    .analogy-card {
+      background: var(--navy-light);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.25rem;
+    }
+
+    .analogy-card__icon {
+      font-size: 2rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .analogy-card h4 {
+      font-size: 0.9rem;
+      margin-bottom: 0.5rem;
+    }
+
+    .analogy-card p {
+      font-size: 0.83rem;
+      line-height: 1.6;
+    }
+
+    /* Learning path */
+    .path-section { padding: var(--section-pad) 0; }
+
+    .path-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr));
+      gap: 1.5rem;
+      margin-top: 3rem;
+    }
+
+    .path-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      transition: all 0.3s var(--ease);
+      text-decoration: none;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .path-card::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 2px;
+      background: var(--card-accent, var(--teal));
+      transform: scaleX(0);
+      transform-origin: left;
+      transition: transform 0.3s var(--ease);
+    }
+
+    .path-card:hover {
+      transform: translateY(-5px);
+      border-color: var(--border-teal);
+      box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 30px rgba(0,201,167,0.08);
+    }
+
+    .path-card:hover::after { transform: scaleX(1); }
+
+    .path-card__num {
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      letter-spacing: 0.1em;
+    }
+
+    .path-card__icon {
+      width: 44px; height: 44px;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      background: var(--icon-bg, rgba(0,201,167,0.1));
+    }
+
+    .path-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 0.1rem;
+    }
+
+    .path-card p {
+      font-size: 0.85rem;
+      line-height: 1.6;
+      flex: 1;
+    }
+
+    .path-card__arrow {
+      color: var(--text-muted);
+      font-size: 1.1rem;
+      transition: transform 0.2s, color 0.2s;
+      align-self: flex-end;
+    }
+
+    .path-card:hover .path-card__arrow {
+      transform: translateX(4px);
+      color: var(--teal);
+    }
+
+    /* Why it matters */
+    .why-section { padding: var(--section-pad) 0; }
+
+    .disease-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+      gap: 1.5rem;
+    }
+
+    .disease-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 1.75rem;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .disease-card__stripe {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 3px;
+    }
+
+    .disease-card__tag {
+      display: inline-block;
+      font-size: 0.7rem;
+      font-family: var(--font-mono);
+      letter-spacing: 0.08em;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .disease-card h4 { font-size: 1.05rem; margin-bottom: 0.6rem; }
+    .disease-card p  { font-size: 0.85rem; line-height: 1.65; }
+
+    .disease-card__proteins {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem;
+      margin-top: 1rem;
+    }
+
+    .protein-pill {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      padding: 0.2rem 0.6rem;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      color: var(--text-secondary);
+    }
+
+    /* Glossary teaser */
+    .glossary-section {
+      padding: var(--section-pad) 0;
+      background: var(--navy-mid);
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+    }
+
+    #glossary-search {
+      width: 100%;
+      max-width: 480px;
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 0.9rem 1.25rem 0.9rem 3rem;
+      color: var(--text-primary);
+      font-family: var(--font-body);
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      display: block;
+      margin: 2rem auto;
+    }
+
+    #glossary-search:focus {
+      border-color: var(--teal);
+      box-shadow: 0 0 0 3px rgba(0,201,167,0.1);
+    }
+
+    .search-wrap {
+      position: relative;
+      max-width: 480px;
+      margin: 2rem auto;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+
+    #glossary-search { padding-left: 3rem; }
+
+    .glossary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .glossary-item {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+    }
+
+    .glossary-item__term {
+      font-family: var(--font-display);
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--teal);
+      margin-bottom: 0.3rem;
+    }
+
+    .glossary-item__def {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      line-height: 1.5;
+    }
+
+    /* CTA Section */
+    .cta-section {
+      padding: var(--section-pad) 0;
+      text-align: center;
+    }
+
+    .cta-section h2 { margin-bottom: 1rem; }
+    .cta-section p  { margin-bottom: 2.5rem; max-width: 500px; margin-left: auto; margin-right: auto; }
+
+    /* Tab system for "I'm new" entry points */
+    .tabs { width: 100%; }
+
+    .tab-list {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      background: var(--navy-mid);
+      padding: 0.4rem;
+      border-radius: 10px;
+      width: fit-content;
+    }
+
+    .tab-btn {
+      padding: 0.6rem 1.25rem;
+      background: none;
+      border: none;
+      border-radius: 7px;
+      cursor: pointer;
+      font-family: var(--font-display);
+      font-size: 0.87rem;
+      font-weight: 600;
+      color: var(--text-muted);
+      transition: all 0.2s;
+    }
+
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--navy-card);
+      color: var(--text-primary);
+    }
+
+    .tab-btn.active { color: var(--teal); }
+
+    .tab-panel { display: none; }
+    .tab-panel.active, .tab-panel:not([hidden]) { display: block; }
+  </style>
+</head>
+<body>
+  <!-- Progress bar -->
+  <div class="progress-bar" role="progressbar" aria-label="Page scroll progress"></div>
+
+  <!-- Navigation -->
+  <nav class="nav" role="navigation" aria-label="Main navigation">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo">
+        <span class="nav__logo-dot"></span>
+        PPI Guide
+      </a>
+      <ul class="nav__links" role="list">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- ── HERO ────────────────────────────────────────────── -->
+  <section class="hero" aria-labelledby="hero-heading">
+    <div id="hero-network" aria-hidden="true"></div>
+    <div class="container">
+      <div class="hero__content">
+        <div class="hero__eyebrow animate-fade-up">
+          Neuroscience · Bioinformatics · Beginners Welcome
+        </div>
+        <h1 id="hero-heading" class="animate-fade-up animate-fade-up--d1">
+          <span class="shimmer-text">Protein–Protein</span>
+          <span class="line2">Interactions Demystified</span>
+        </h1>
+        <p class="hero__sub animate-fade-up animate-fade-up--d2">
+          From what a PPI actually <em>is</em>, to running your own network analysis in STRING and Metascape — this guidebook takes you through the full picture, step by step, with real neuroscience examples.
+        </p>
+        <div class="hero__actions animate-fade-up animate-fade-up--d3">
+          <a href="01-ppi-basics.html" class="btn btn--primary">
+            Start Learning
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="#what-is-ppi" class="btn btn--ghost">What is a PPI?</a>
+        </div>
+      </div>
+    </div>
+    <div class="hero__scroll-hint" aria-hidden="true">
+      Scroll to explore
+      <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>
+    </div>
+  </section>
+
+  <!-- ── STATS STRIP ─────────────────────────────────────── -->
+  <div class="stats-strip" aria-label="Key figures">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item reveal">
+          <span class="stat-item__num" data-count="600000" data-suffix="+">600,000+</span>
+          <span class="stat-item__label">Known human PPIs (STRING v12)</span>
+        </div>
+        <div class="stat-item reveal reveal--delay-1">
+          <span class="stat-item__num" data-count="20000" data-suffix="+">20,000+</span>
+          <span class="stat-item__label">Human protein-coding genes</span>
+        </div>
+        <div class="stat-item reveal reveal--delay-2">
+          <span class="stat-item__num" data-count="3" data-suffix=" tools">3 tools</span>
+          <span class="stat-item__label">Covered in detail: STRING, Metascape, Cytoscape</span>
+        </div>
+        <div class="stat-item reveal reveal--delay-3">
+          <span class="stat-item__num" data-count="6" data-suffix=" chapters">6 chapters</span>
+          <span class="stat-item__label">From zero to confident analyst</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── WHAT IS A PPI ───────────────────────────────────── -->
+  <section class="what-section" id="what-is-ppi" aria-labelledby="what-heading">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// start here</span>
+        <h2 id="what-heading">What is a protein–protein interaction?</h2>
+      </div>
+
+      <div class="grid-2" style="gap: 3rem; align-items: start;">
+        <div class="reveal">
+          <div class="definition-card">
+            <div class="big-quote" aria-hidden="true">"</div>
+            <blockquote>
+              A <strong>protein–protein interaction (PPI)</strong> occurs when two or more protein molecules bind to each other and, as a result, affect the function of one or both.
+            </blockquote>
+            <p style="margin-top:1.5rem; font-size:0.95rem;">
+              Proteins don't work alone. Nearly every biological process — from how a neuron fires an action potential to how a cell decides to die — depends on proteins forming physical contacts with other proteins. A single hub protein in the brain might interact with dozens of partners, and disrupting just one of those interactions can cascade into disease.
+            </p>
+            <p>
+              The complete set of PPIs in an organism is called the <strong>interactome</strong>. Mapping it tells us how biological information flows, which proteins are functionally important, and where disease processes can be targeted.
+            </p>
+          </div>
+
+          <div class="analogy-grid reveal">
+            <div class="analogy-card">
+              <div class="analogy-card__icon">🔌</div>
+              <h4>Plug and socket</h4>
+              <p>Direct, physical binding — like a key in a lock. Shape-specific.</p>
+            </div>
+            <div class="analogy-card">
+              <div class="analogy-card__icon">✈️</div>
+              <h4>Airport hub</h4>
+              <p>Hub proteins connect to many partners, like a major airport connecting cities. Remove the hub — the network collapses.</p>
+            </div>
+            <div class="analogy-card">
+              <div class="analogy-card__icon">📡</div>
+              <h4>Signal relay</h4>
+              <p>Many PPIs pass a molecular message down a chain — each protein handing off to the next.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="reveal reveal--delay-2">
+          <div class="section-label" style="margin-bottom:1rem;">Types of interaction</div>
+          <div class="tabs" role="tablist" aria-label="PPI types">
+            <div class="tab-list">
+              <button class="tab-btn" role="tab" data-tab="direct" aria-selected="false">Direct</button>
+              <button class="tab-btn" role="tab" data-tab="indirect" aria-selected="false">Co-complex</button>
+              <button class="tab-btn" role="tab" data-tab="transient" aria-selected="false">Transient</button>
+            </div>
+
+            <div class="tab-panel" data-panel="direct">
+              <div class="card card--teal">
+                <h4 style="color:var(--teal); margin-bottom:0.75rem;">Direct (Binary) interactions</h4>
+                <p>Two proteins physically touch — detectable by methods like yeast two-hybrid (Y2H) or co-immunoprecipitation. In STRING, these are sourced from databases like BioGRID and IntAct. Example: SNCA (α-synuclein) directly binds to PARK7 (DJ-1) in a protective complex relevant to Parkinson's disease.</p>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-panel="indirect">
+              <div class="card card--amber">
+                <h4 style="color:var(--amber); margin-bottom:0.75rem;">Co-complex (indirect) interactions</h4>
+                <p>Two proteins are found in the same complex but may not directly touch — detected by co-purification methods like AP-MS (affinity purification–mass spectrometry). Important in STRING's "co-expression" and "databases" channels. Example: APP and PSEN1 are found together in the γ-secretase complex along with nicastrin and APH-1, even though they don't all directly contact each other.</p>
+              </div>
+            </div>
+
+            <div class="tab-panel" data-panel="transient">
+              <div class="card card--rose">
+                <h4 style="color:var(--rose); margin-bottom:0.75rem;">Transient vs. stable interactions</h4>
+                <p>Stable interactions (e.g. ribosome subunits) are permanent structural associations. Transient interactions are fleeting — a kinase docking briefly to phosphorylate its target before leaving. Most signalling PPIs are transient, making them harder to detect experimentally but functionally critical. STRING captures both types across different evidence channels.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="callout callout--info" style="margin-top:1.5rem;">
+            <div class="callout__icon">💡</div>
+            <div>
+              <div class="callout__title">Why does this matter for analysis?</div>
+              <p>When you query STRING or Metascape, the tool doesn't distinguish what <em>type</em> of interaction it shows unless you filter by evidence channel. Understanding interaction types helps you interpret confidence scores and pick the right experimental follow-up.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── WHY IN NEURO ────────────────────────────────────── -->
+  <section class="why-section" aria-labelledby="why-heading">
+    <div class="container">
+      <div class="section-header section-header--center reveal">
+        <span class="section-label">// why it matters</span>
+        <h2 id="why-heading">PPIs in neuroscience research</h2>
+        <p>Many of the most devastating neurological diseases are fundamentally diseases of disrupted protein interactions. Here are four major examples you'll encounter throughout this guide.</p>
+      </div>
+
+      <div class="disease-grid stagger-children">
+        <div class="disease-card">
+          <div class="disease-card__stripe" style="background: linear-gradient(90deg, #00c9a7, #4a9eff);"></div>
+          <span class="disease-card__tag">Alzheimer's Disease</span>
+          <h4>The APP interactome</h4>
+          <p>Amyloid Precursor Protein (APP) interacts with BACE1, PSEN1, and APOE in a network that, when disrupted, leads to Aβ plaque accumulation. PPI network analysis was instrumental in identifying these connections and proposing therapeutic targets.</p>
+          <div class="disease-card__proteins">
+            <span class="protein-pill">APP</span>
+            <span class="protein-pill">BACE1</span>
+            <span class="protein-pill">PSEN1</span>
+            <span class="protein-pill">APOE</span>
+            <span class="protein-pill">CLU</span>
+            <span class="protein-pill">BIN1</span>
+          </div>
+        </div>
+
+        <div class="disease-card">
+          <div class="disease-card__stripe" style="background: linear-gradient(90deg, #f5a623, #ff6b8a);"></div>
+          <span class="disease-card__tag">Parkinson's Disease</span>
+          <h4>The α-synuclein hub</h4>
+          <p>SNCA forms a dense interaction hub with PARK2, PINK1, and LRRK2. These proteins all converge on mitochondrial quality control and ubiquitin–proteasome pathways. Network analysis revealed this convergence, shaping our understanding of PD pathophysiology.</p>
+          <div class="disease-card__proteins">
+            <span class="protein-pill">SNCA</span>
+            <span class="protein-pill">PARK2</span>
+            <span class="protein-pill">PINK1</span>
+            <span class="protein-pill">LRRK2</span>
+            <span class="protein-pill">DJ-1</span>
+          </div>
+        </div>
+
+        <div class="disease-card">
+          <div class="disease-card__stripe" style="background: linear-gradient(90deg, #a78bfa, #00c9a7);"></div>
+          <span class="disease-card__tag">Synaptic Signalling</span>
+          <h4>The postsynaptic density</h4>
+          <p>The postsynaptic density (PSD) is one of the most interaction-dense structures in biology — hundreds of proteins interlocking to coordinate glutamate receptor trafficking, long-term potentiation, and plasticity. Mapping its PPI network revealed how psychiatric disease mutations converge.</p>
+          <div class="disease-card__proteins">
+            <span class="protein-pill">PSD-95</span>
+            <span class="protein-pill">SHANK3</span>
+            <span class="protein-pill">NMDAR</span>
+            <span class="protein-pill">Homer</span>
+            <span class="protein-pill">mGluR</span>
+          </div>
+        </div>
+
+        <div class="disease-card">
+          <div class="disease-card__stripe" style="background: linear-gradient(90deg, #ff6b8a, #f5a623);"></div>
+          <span class="disease-card__tag">Neurotrophin Signalling</span>
+          <h4>BDNF receptor cascades</h4>
+          <p>BDNF binds TrkB (NTRK2), triggering a cascade of phosphorylation PPIs through PI3K/AKT and MAPK/ERK pathways. GO enrichment of genes in this network consistently highlights terms like "axon guidance" and "synaptic plasticity" — exactly the kind of result you'll learn to interpret.</p>
+          <div class="disease-card__proteins">
+            <span class="protein-pill">BDNF</span>
+            <span class="protein-pill">NTRK2</span>
+            <span class="protein-pill">AKT1</span>
+            <span class="protein-pill">MAPK3</span>
+            <span class="protein-pill">CREB1</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ── LEARNING PATH ───────────────────────────────────── -->
+  <section class="path-section" aria-labelledby="path-heading">
+    <div class="container">
+      <div class="section-header reveal">
+        <span class="section-label">// your roadmap</span>
+        <h2 id="path-heading">Six chapters from zero to confident</h2>
+        <p>Each chapter builds on the last. Start at chapter 1 and work through, or jump to any topic you need.</p>
+      </div>
+
+      <div class="path-grid stagger-children">
+
+        <a href="01-ppi-basics.html" class="path-card" style="--card-accent: #00c9a7; --icon-bg: rgba(0,201,167,0.12);">
+          <div class="path-card__num">Chapter 01</div>
+          <div class="path-card__icon">🔬</div>
+          <h3>PPI Fundamentals</h3>
+          <p>What proteins are, how they interact, what a network actually means, and why hub proteins matter so much in neuroscience.</p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge--teal">Interaction types</span>
+            <span class="badge badge--teal">Hub proteins</span>
+            <span class="badge badge--teal">Network topology</span>
+          </div>
+          <span class="path-card__arrow">→</span>
+        </a>
+
+        <a href="02-databases.html" class="path-card" style="--card-accent: #4a9eff; --icon-bg: rgba(74,158,255,0.12);">
+          <div class="path-card__num">Chapter 02</div>
+          <div class="path-card__icon">🗄️</div>
+          <h3>PPI Databases</h3>
+          <p>STRING, BioGRID, IntAct, and MINT — what they contain, how evidence is scored, and how to read what they return.</p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge--lav">STRING</span>
+            <span class="badge badge--lav">BioGRID</span>
+            <span class="badge badge--lav">Confidence scores</span>
+          </div>
+          <span class="path-card__arrow">→</span>
+        </a>
+
+        <a href="03-enrichment.html" class="path-card" style="--card-accent: #f5a623; --icon-bg: rgba(245,166,35,0.12);">
+          <div class="path-card__num">Chapter 03</div>
+          <div class="path-card__icon">📊</div>
+          <h3>GO &amp; Enrichment Analysis</h3>
+          <p>Gene Ontology, the three namespaces, enrichment testing, and how to use g:Profiler and Metascape to interpret a gene list.</p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge--amber">Gene Ontology</span>
+            <span class="badge badge--amber">g:Profiler</span>
+            <span class="badge badge--amber">Metascape</span>
+          </div>
+          <span class="path-card__arrow">→</span>
+        </a>
+
+        <a href="04-network-analysis.html" class="path-card" style="--card-accent: #a78bfa; --icon-bg: rgba(167,139,250,0.12);">
+          <div class="path-card__num">Chapter 04</div>
+          <div class="path-card__icon">🕸️</div>
+          <h3>Network Analysis</h3>
+          <p>From Metascape's built-in networks to Cytoscape for publication-quality figures — metrics, community detection, and visualisation.</p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge--lav">Metascape</span>
+            <span class="badge badge--lav">Cytoscape</span>
+            <span class="badge badge--lav">Hub detection</span>
+          </div>
+          <span class="path-card__arrow">→</span>
+        </a>
+
+        <a href="05-worked-examples.html" class="path-card" style="--card-accent: #ff6b8a; --icon-bg: rgba(255,107,138,0.12);">
+          <div class="path-card__num">Chapter 05</div>
+          <div class="path-card__icon">📄</div>
+          <h3>Worked Examples</h3>
+          <p>Three real neuroscience papers dissected step by step — what the authors did, why, and what you'd do to replicate their analysis.</p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge--rose">Alzheimer's</span>
+            <span class="badge badge--rose">Parkinson's</span>
+            <span class="badge badge--rose">Synaptic plasticity</span>
+          </div>
+          <span class="path-card__arrow">→</span>
+        </a>
+
+        <a href="06-best-practices.html" class="path-card" style="--card-accent: #00c9a7; --icon-bg: rgba(0,201,167,0.12);">
+          <div class="path-card__num">Chapter 06</div>
+          <div class="path-card__icon">✅</div>
+          <h3>Best Practices</h3>
+          <p>Threshold selection, multiple testing correction, publication bias, and how to report PPI results so reviewers take them seriously.</p>
+          <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+            <span class="badge badge--teal">FDR correction</span>
+            <span class="badge badge--teal">Reproducibility</span>
+            <span class="badge badge--teal">Reporting</span>
+          </div>
+          <span class="path-card__arrow">→</span>
+        </a>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── GLOSSARY TEASER ─────────────────────────────────── -->
+  <section class="glossary-section" aria-labelledby="glossary-heading">
+    <div class="container">
+      <div class="section-header section-header--center reveal">
+        <span class="section-label">// quick reference</span>
+        <h2 id="glossary-heading">Key terms, at a glance</h2>
+        <p>You'll encounter these throughout the guide. Search below to find any term.</p>
+      </div>
+
+      <div class="search-wrap">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        <input type="search" id="glossary-search" placeholder="Search terms, e.g. 'hub', 'FDR', 'GO'…" aria-label="Search glossary terms" />
+      </div>
+
+      <div class="glossary-grid" role="list">
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">PPI</div>
+          <div class="glossary-item__def">Protein–protein interaction. A physical or functional contact between two protein molecules.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Interactome</div>
+          <div class="glossary-item__def">The complete set of all PPIs in an organism or cell type.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Hub protein</div>
+          <div class="glossary-item__def">A protein with many interaction partners (high degree). Often functionally essential.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Confidence score</div>
+          <div class="glossary-item__def">In STRING, a combined score (0–1) estimating the probability that two proteins genuinely interact.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Gene Ontology (GO)</div>
+          <div class="glossary-item__def">A controlled vocabulary describing gene/protein function across three domains: Biological Process, Molecular Function, and Cellular Component.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Enrichment analysis</div>
+          <div class="glossary-item__def">A statistical test asking whether a set of genes contains more genes with a given annotation than expected by chance.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">FDR</div>
+          <div class="glossary-item__def">False Discovery Rate. A method of correcting for multiple statistical tests, widely used in bioinformatics (Benjamini–Hochberg procedure).</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Degree centrality</div>
+          <div class="glossary-item__def">The number of direct interaction partners a node (protein) has in a network.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Betweenness centrality</div>
+          <div class="glossary-item__def">Measures how often a protein lies on the shortest path between other proteins — identifies 'bottleneck' proteins.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">STRING</div>
+          <div class="glossary-item__def">Search Tool for the Retrieval of Interacting Genes/Proteins. The most widely used PPI database, integrating multiple evidence channels.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Metascape</div>
+          <div class="glossary-item__def">A web-based tool for gene list enrichment analysis, GO annotation, and PPI network visualisation. Integrates multiple databases.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Cytoscape</div>
+          <div class="glossary-item__def">Open-source desktop platform for visualising and analysing biological networks, widely used for publication-quality PPI figures.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">MCODE</div>
+          <div class="glossary-item__def">Molecular Complex Detection — a Cytoscape/Metascape algorithm that identifies densely connected clusters (putative protein complexes) in networks.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Scale-free network</div>
+          <div class="glossary-item__def">A network where most nodes have few connections but a few hubs have very many — following a power-law degree distribution. Biological PPI networks are approximately scale-free.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">Y2H (Yeast Two-Hybrid)</div>
+          <div class="glossary-item__def">A classic experimental method for detecting direct binary PPIs. Transcription is only activated when two test proteins physically interact.</div>
+        </div>
+        <div class="glossary-item" role="listitem">
+          <div class="glossary-item__term">AP-MS</div>
+          <div class="glossary-item__def">Affinity Purification–Mass Spectrometry. Pulls down a protein of interest and identifies all co-purified partners, detecting both direct and indirect interactions.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── CTA ─────────────────────────────────────────────── -->
+  <section class="cta-section" aria-labelledby="cta-heading">
+    <div class="container">
+      <div class="reveal">
+        <span class="section-label">// ready?</span>
+        <h2 id="cta-heading">Start with the fundamentals</h2>
+        <p>Chapter 1 covers everything you need to understand before touching any tool.</p>
+        <div style="display:flex; gap:1rem; justify-content:center; flex-wrap:wrap;">
+          <a href="01-ppi-basics.html" class="btn btn--primary">
+            Chapter 1: PPI Basics
+            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          </a>
+          <a href="07-references.html" class="btn btn--ghost">View All References</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── FOOTER ──────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">
+          PPI Guidebook · Educational resource for neuroscience undergraduates · Content reviewed against primary literature
+        </p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="01-ppi-basics.html">Basics</a></li>
+          <li><a href="07-references.html">References</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <!-- Scripts -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js" crossorigin="anonymous"></script>
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/network-viz.js"></script>
+  <script src="assets/js/interactive.js"></script>
+  <script>
+    // Init hero network once D3 is ready
+    document.addEventListener('DOMContentLoaded', () => {
+      PPINetwork.initHeroNetwork('hero-network');
+    });
+  </script>
+</body>
+</html>

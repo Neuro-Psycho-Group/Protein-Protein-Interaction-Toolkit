@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 4: Network Analysis — PPI Guidebook</title>
+  <meta name="description" content="Using Metascape and Cytoscape for PPI network analysis — MCODE clustering, hub identification, betweenness centrality, and producing publication-quality figures." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    .content-section { margin-bottom:4rem; scroll-margin-top:90px; }
+    .content-section h2 { font-size:clamp(1.5rem,3vw,2rem); margin-bottom:1.25rem; }
+    .content-section h3 { font-size:1.2rem; margin:2rem 0 0.75rem; }
+    .content-section p  { font-size:0.97rem; }
+    .walkthrough { background:var(--navy-card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin:1.5rem 0; }
+    .wh { background:var(--navy-light); padding:1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.75rem; }
+    .wh h4 { font-size:0.9rem; }
+    .ws-list { padding:1.5rem; }
+    .ws { display:flex; gap:1.25rem; margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border); }
+    .ws:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+    .ws__n { min-width:28px; height:28px; border-radius:50%; background:rgba(167,139,250,0.12); border:1px solid rgba(167,139,250,0.3); color:var(--lavender); font-family:var(--font-display); font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:0.1rem; }
+    .ws__c h4 { font-size:0.92rem; margin-bottom:0.4rem; }
+    .ws__c p  { font-size:0.85rem; line-height:1.6; }
+    .ws__c code { font-size:0.82rem; }
+
+    /* Metascape vs Cytoscape comparison */
+    .tool-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 0;
+      margin: 2rem 0;
+      position: relative;
+    }
+    .tool-timeline::before {
+      content: '';
+      position: absolute;
+      left: 24px;
+      top: 0; bottom: 0;
+      width: 2px;
+      background: linear-gradient(to bottom, var(--amber), var(--lavender));
+    }
+    .timeline-item {
+      display: flex;
+      gap: 1.5rem;
+      padding: 0 0 2rem 0;
+      position: relative;
+    }
+    .timeline-dot {
+      min-width: 50px; height: 50px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      position: relative;
+      z-index: 1;
+      flex-shrink: 0;
+    }
+    .timeline-dot--meta { background: rgba(245,166,35,0.15); border: 2px solid rgba(245,166,35,0.4); }
+    .timeline-dot--cyto  { background: rgba(167,139,250,0.15); border: 2px solid rgba(167,139,250,0.4); }
+    .timeline-dot--arrow { background: rgba(0,201,167,0.15); border: 2px solid rgba(0,201,167,0.4); }
+    .timeline-content { padding-top: 0.6rem; }
+    .timeline-content h4 { font-size: 1rem; margin-bottom: 0.4rem; }
+    .timeline-content p  { font-size: 0.87rem; line-height: 1.6; }
+
+    /* Cytoscape feature cards */
+    .cyto-features { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1rem; margin:1.5rem 0; }
+    .cyto-card { background:var(--navy-card); border:1px solid var(--border); border-radius:12px; padding:1.25rem; }
+    .cyto-card__icon { font-size:1.5rem; margin-bottom:0.6rem; }
+    .cyto-card h4 { font-size:0.9rem; color:var(--lavender); margin-bottom:0.4rem; }
+    .cyto-card p  { font-size:0.82rem; line-height:1.55; }
+
+    /* MCODE visual */
+    .mcode-viz {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+    }
+
+    /* Checklist */
+    .checklist { list-style:none; display:flex; flex-direction:column; gap:0.5rem; }
+    .checklist li { display:flex; gap:0.75rem; align-items:flex-start; font-size:0.88rem; color:var(--text-secondary); }
+    .checklist li::before { content:'□'; color:var(--lavender); font-size:1rem; flex-shrink:0; margin-top:-0.1rem; }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><span class="nav__logo-dot"></span>PPI Guide</a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" style="background:radial-gradient(ellipse 80% 60% at 60% 50%,rgba(167,139,250,0.07) 0%,transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">Chapter 04</span>
+        <span class="badge badge--lav">Network Analysis</span>
+      </div>
+      <h1 class="animate-fade-up">Network Analysis</h1>
+      <p class="animate-fade-up animate-fade-up--d1">Metascape automates the enrichment-to-network pipeline. Cytoscape gives you control over every visual element for publication figures. This chapter explains how they work, why they're complementary, and how to move from automated output to polished, interpretable network visualisations.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="reading-layout">
+        <div>
+
+          <!-- 4.1 The Metascape–Cytoscape relationship -->
+          <div class="content-section reveal" id="relationship">
+            <span class="section-label">// section 4.1</span>
+            <h2>Metascape and Cytoscape: analyst and artist</h2>
+            <p>
+              These two tools are often mentioned together in papers because they serve complementary roles in a PPI network analysis workflow. Understanding their distinct purposes prevents confusion about when to use each:
+            </p>
+
+            <div class="tool-timeline stagger-children">
+              <div class="timeline-item">
+                <div class="timeline-dot timeline-dot--meta">📊</div>
+                <div class="timeline-content">
+                  <h4 style="color:var(--amber);">Metascape — the analyst</h4>
+                  <p>Takes your gene/protein list, runs enrichment analysis across dozens of databases, constructs a PPI network from STRING data, detects functional modules with MCODE, and semantically clusters GO results. It is automated, opinionated, and fast. The output is biologically meaningful but visually limited — Metascape figures in papers look recognisably "Metascape-like" and are not highly customisable.</p>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot timeline-dot--arrow">→</div>
+                <div class="timeline-content">
+                  <h4 style="color:var(--teal);">The handoff</h4>
+                  <p>Metascape's network can be exported as node/edge tables or a direct Cytoscape session file. The node table contains the coordinates, cluster membership, and GO annotation computed by Metascape. The edge table contains the STRING-derived interactions and scores. Cytoscape reads both files and reconstructs the network exactly as Metascape laid it out — but now you have full control over every visual property.</p>
+                </div>
+              </div>
+              <div class="timeline-item">
+                <div class="timeline-dot timeline-dot--cyto">🎨</div>
+                <div class="timeline-content">
+                  <h4 style="color:var(--lavender);">Cytoscape — the artist</h4>
+                  <p>Cytoscape (cytoscape.org, Shannon et al., 2003) is an open-source desktop platform for network visualisation and analysis. It doesn't run enrichment analysis or build networks from scratch — it <em>visualises and analyses networks you bring to it</em>. In Cytoscape you control: node size, colour, shape (can map to degree, cluster, or any metadata), edge width and opacity (mapped to STRING confidence score), layout algorithm, labels, and legends. The result is a figure that communicates exactly what you want the reader to see.</p>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout--key">
+              <div class="callout__icon">🔑</div>
+              <div>
+                <div class="callout__title">The fundamental distinction</div>
+                <p><strong>Metascape is for generating biological insight.</strong> <strong>Cytoscape is for communicating that insight visually.</strong> A complete PPI paper figure typically uses both: Metascape's MCODE clusters define the structure; Cytoscape's styling makes that structure legible and publication-ready.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4.2 Metascape network analysis -->
+          <div class="content-section reveal" id="metascape-network">
+            <span class="section-label">// section 4.2</span>
+            <h2>Metascape network analysis in depth</h2>
+            <p>
+              When you submit a gene list to Metascape and it constructs a PPI network, several analytical steps happen automatically. Understanding them helps you interpret and report the output correctly.
+            </p>
+
+            <h3>MCODE: detecting protein complexes</h3>
+            <p>
+              <strong>MCODE</strong> (Molecular Complex Detection, Bader & Hogue, 2003) identifies <span data-def="A group of nodes in a network that are more densely connected to each other than to the rest of the network. In PPI networks, these represent protein complexes or tightly co-functioning groups.">densely connected subgraphs</span> within the PPI network. The algorithm assigns a score to each node based on the local clustering coefficient weighted by the number of edges in the neighbourhood. Dense clusters exceed a score threshold and are reported as "modules".
+            </p>
+            <p>
+              In Metascape's output, each MCODE module is presented with: (1) a list of member proteins, (2) a GO enrichment summary for those proteins, and (3) a visual position in the full network where the cluster is highlighted. This is the information you'll use to label your Cytoscape figure — each cluster becomes a labelled region in the final network figure.
+            </p>
+
+            <div class="mcode-viz reveal">
+              <div style="font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted); margin-bottom:1rem; letter-spacing:0.08em; text-transform:uppercase;">Metascape MCODE output — typical AD PPI network</div>
+              <svg viewBox="0 0 580 280" width="100%" style="max-height:280px;">
+                <!-- Background -->
+                <!-- MCODE cluster 1: APP complex -->
+                <ellipse cx="150" cy="120" rx="90" ry="65" fill="rgba(0,201,167,0.06)" stroke="rgba(0,201,167,0.35)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                <text x="100" y="175" fill="rgba(0,201,167,0.6)" font-size="8" font-family="DM Mono">Module 1: APP processing</text>
+
+                <!-- MCODE cluster 2: tau/kinase complex -->
+                <ellipse cx="330" cy="100" rx="95" ry="60" fill="rgba(245,166,35,0.06)" stroke="rgba(245,166,35,0.35)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                <text x="275" y="155" fill="rgba(245,166,35,0.6)" font-size="8" font-family="DM Mono">Module 2: tau phosphorylation</text>
+
+                <!-- MCODE cluster 3: PD complex -->
+                <ellipse cx="460" cy="180" rx="80" ry="60" fill="rgba(167,139,250,0.06)" stroke="rgba(167,139,250,0.35)" stroke-width="1.5" stroke-dasharray="5,4"/>
+                <text x="410" y="235" fill="rgba(167,139,250,0.6)" font-size="8" font-family="DM Mono">Module 3: mitophagy</text>
+
+                <!-- Edges -->
+                <line x1="185" y1="100" x2="235" y2="90" stroke="rgba(0,201,167,0.5)" stroke-width="2.5"/>
+                <line x1="155" y1="90" x2="240" y2="75" stroke="rgba(0,201,167,0.4)" stroke-width="2"/>
+                <line x1="330" y1="130" x2="385" y2="160" stroke="rgba(167,139,250,0.4)" stroke-width="1.5"/>
+                <line x1="175" y1="135" x2="375" y2="165" stroke="rgba(255,255,255,0.15)" stroke-width="1" stroke-dasharray="3,3"/>
+
+                <!-- Module 1 nodes -->
+                <circle cx="120" cy="100" r="16" fill="rgba(0,201,167,0.15)" stroke="#00c9a7" stroke-width="1.5"/>
+                <text x="120" y="104" text-anchor="middle" fill="#00c9a7" font-size="8" font-family="DM Mono" font-weight="600">APP</text>
+                <circle cx="165" cy="85" r="13" fill="rgba(0,201,167,0.12)" stroke="#00c9a7" stroke-width="1.5"/>
+                <text x="165" y="89" text-anchor="middle" fill="#00c9a7" font-size="7.5" font-family="DM Mono">PSEN1</text>
+                <circle cx="155" cy="140" r="11" fill="rgba(0,201,167,0.12)" stroke="#00c9a7" stroke-width="1.5"/>
+                <text x="155" y="144" text-anchor="middle" fill="#00c9a7" font-size="7.5" font-family="DM Mono">BACE1</text>
+                <circle cx="105" cy="145" r="11" fill="rgba(0,201,167,0.12)" stroke="#00c9a7" stroke-width="1.5"/>
+                <text x="105" y="149" text-anchor="middle" fill="#00c9a7" font-size="7.5" font-family="DM Mono">APOE</text>
+
+                <!-- Module 2 nodes -->
+                <circle cx="290" cy="90" r="14" fill="rgba(245,166,35,0.15)" stroke="#f5a623" stroke-width="1.5"/>
+                <text x="290" y="94" text-anchor="middle" fill="#f5a623" font-size="8" font-family="DM Mono" font-weight="600">MAPT</text>
+                <circle cx="355" cy="80" r="11" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="1.5"/>
+                <text x="355" y="84" text-anchor="middle" fill="#f5a623" font-size="7.5" font-family="DM Mono">CDK5</text>
+                <circle cx="370" cy="118" r="11" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="1.5"/>
+                <text x="370" y="122" text-anchor="middle" fill="#f5a623" font-size="7.5" font-family="DM Mono">GSK3B</text>
+                <circle cx="305" cy="125" r="10" fill="rgba(245,166,35,0.12)" stroke="#f5a623" stroke-width="1.5"/>
+                <text x="305" y="129" text-anchor="middle" fill="#f5a623" font-size="7" font-family="DM Mono">TP53</text>
+
+                <!-- Module 3 nodes -->
+                <circle cx="430" cy="165" r="13" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+                <text x="430" y="169" text-anchor="middle" fill="#a78bfa" font-size="7.5" font-family="DM Mono">SNCA</text>
+                <circle cx="490" cy="160" r="11" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
+                <text x="490" y="164" text-anchor="middle" fill="#a78bfa" font-size="7.5" font-family="DM Mono">PARK2</text>
+                <circle cx="460" cy="210" r="11" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
+                <text x="460" y="214" text-anchor="middle" fill="#a78bfa" font-size="7.5" font-family="DM Mono">PINK1</text>
+                <circle cx="415" cy="205" r="10" fill="rgba(167,139,250,0.12)" stroke="#a78bfa" stroke-width="1.5"/>
+                <text x="415" y="209" text-anchor="middle" fill="#a78bfa" font-size="7" font-family="DM Mono">LRRK2</text>
+
+                <!-- Legend -->
+                <rect x="15" y="245" width="250" height="28" rx="5" fill="rgba(13,22,40,0.7)" stroke="rgba(255,255,255,0.1)"/>
+                <circle cx="30" cy="259" r="5" fill="rgba(0,201,167,0.5)" stroke="#00c9a7"/>
+                <text x="40" y="263" fill="#8fa3c8" font-size="8" font-family="DM Mono">Module 1 &nbsp;</text>
+                <circle cx="105" cy="259" r="5" fill="rgba(245,166,35,0.5)" stroke="#f5a623"/>
+                <text x="115" y="263" fill="#8fa3c8" font-size="8" font-family="DM Mono">Module 2 &nbsp;</text>
+                <circle cx="180" cy="259" r="5" fill="rgba(167,139,250,0.5)" stroke="#a78bfa"/>
+                <text x="190" y="263" fill="#8fa3c8" font-size="8" font-family="DM Mono">Module 3</text>
+              </svg>
+              <p class="fig-caption">Schematic of a Metascape MCODE output — three functional clusters automatically detected and annotated within a larger PPI network</p>
+            </div>
+
+            <h3>Metascape hub protein analysis</h3>
+            <p>Within the network view, Metascape calculates degree centrality for each node and can highlight the top hub proteins. In the "PPI Enrichment" results, clicking "Network Visualization" shows node size scaled by degree. For Alzheimer's networks, APP, MAPT, and TP53 consistently appear as the largest nodes — confirming their hub status within the network topology.</p>
+          </div>
+
+          <!-- 4.3 Cytoscape -->
+          <div class="content-section reveal" id="cytoscape">
+            <span class="section-label">// section 4.3</span>
+            <h2>Cytoscape: publication-quality network figures</h2>
+            <p>
+              Cytoscape is an open-source desktop application (download at cytoscape.org). Version 3.x works on Windows, macOS, and Linux. It requires Java 11+ and at least 2GB RAM for typical neuroscience-scale networks (50–500 nodes). The core application is free; a library of plugins called <strong>Apps</strong> extends its functionality — the most important for PPI work are <em>NetworkAnalyzer</em>, <em>STRING app</em>, <em>EnhancedGraphics</em>, and <em>Omics Visualizer</em>.
+            </p>
+
+            <div class="cyto-features stagger-children">
+              <div class="cyto-card">
+                <div class="cyto-card__icon">🎨</div>
+                <h4>Visual Style editor</h4>
+                <p>Map any node/edge attribute to any visual property. Size nodes by degree centrality, colour them by cluster membership, scale edge width by STRING confidence score. Everything is data-driven.</p>
+              </div>
+              <div class="cyto-card">
+                <div class="cyto-card__icon">📐</div>
+                <h4>Layout algorithms</h4>
+                <p>Force-directed (organic), hierarchical, circular, grid. For PPI networks, the "organic" force-directed layout usually works best — it naturally positions hub proteins centrally and clusters dense modules.</p>
+              </div>
+              <div class="cyto-card">
+                <div class="cyto-card__icon">📊</div>
+                <h4>NetworkAnalyzer</h4>
+                <p>Built-in plugin that computes degree, betweenness centrality, clustering coefficient, average path length, and other metrics for every node. Results are stored as node attributes, ready to drive visual styles.</p>
+              </div>
+              <div class="cyto-card">
+                <div class="cyto-card__icon">🔌</div>
+                <h4>STRING App</h4>
+                <p>Query STRING directly from within Cytoscape without exporting/importing files. Returns the same network STRING.db would, but opens directly in Cytoscape's analysis environment.</p>
+              </div>
+            </div>
+
+            <div class="walkthrough reveal">
+              <div class="wh"><span>🕸️</span><h4>Cytoscape workflow: from Metascape export to publication figure</h4></div>
+              <div class="ws-list">
+                <div class="ws"><div class="ws__n">1</div><div class="ws__c">
+                  <h4>Import the Metascape network</h4>
+                  <p>In Metascape's network view, click <strong>Export → Cytoscape</strong> to download a ZIP containing <code>cytoscape_input.xlsx</code> (node and edge tables). In Cytoscape: <strong>File → Import → Network from File</strong>. Select the edge table; set "Source" and "Target" columns appropriately. Then import node attributes: <strong>File → Import → Table from File</strong>, attaching to nodes by gene name. Alternatively, open the <code>.cys</code> session file if Metascape generated one — this reconstructs the exact layout automatically.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">2</div><div class="ws__c">
+                  <h4>Run NetworkAnalyzer</h4>
+                  <p>Go to <strong>Tools → Analyze Network</strong>. For undirected PPI networks, select "treat network as undirected". This adds degree, betweenness centrality, and clustering coefficient as node attributes visible in the node table. These attributes are now available to use in your visual style — for example, you can map node size to degree so that hub proteins appear larger.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">3</div><div class="ws__c">
+                  <h4>Set up Visual Styles</h4>
+                  <p>Open the <strong>Style</strong> panel (left sidebar). For a clean PPI figure: map <code>Node Size</code> to degree (continuous mapping, larger = higher degree); map <code>Node Fill Color</code> to MCODE cluster membership (discrete mapping, different colour per cluster); map <code>Edge Width</code> to STRING confidence score (continuous); set <code>Edge Opacity</code> to 60%. Use a dark background matching your paper's figure style, or white for journal figures. Font: avoid default sans-serif — use a clean monospaced font for node labels to match bioinformatics conventions.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">4</div><div class="ws__c">
+                  <h4>Apply a layout</h4>
+                  <p>Go to <strong>Layout → Organic</strong> (yFiles layout is the highest-quality but requires a licence; the open-source "Prefuse Force Directed" is the best free alternative). After applying the layout, manually adjust nodes that are overlapping or poorly positioned. Cytoscape allows individual node dragging while the rest of the network remains anchored.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">5</div><div class="ws__c">
+                  <h4>Add annotations and export</h4>
+                  <p>Use <strong>Annotations</strong> to add text labels for each MCODE cluster (e.g. "Module 1: APP processing — GO:0042982"). Export via <strong>File → Export → Network to Image</strong>. For publications: use <strong>PDF or SVG</strong> format for vector graphics (scalable, editable in Illustrator or Inkscape). PNG at 300 DPI minimum for bitmap formats. Include a scale bar or legend in Cytoscape's annotation layer before exporting.</p>
+                </div></div>
+              </div>
+            </div>
+
+            <div class="callout callout--info" style="margin-top:0;">
+              <div class="callout__icon">💡</div>
+              <div>
+                <div class="callout__title">What editors and reviewers expect in a PPI network figure</div>
+                <p>A good PPI network figure should be legible at publication size (typically 8–16 cm wide). Nodes should be labelled (gene symbols, not protein names). Edge weight should reflect confidence score. Hub proteins should be visually prominent (larger nodes). If MCODE clusters are shown, they should be colour-coded consistently with the enrichment table. Include a concise legend explaining colour, size, and edge weight scales. Avoid "hairball" networks — if your network has &gt;100 nodes, consider showing only the top N by degree, or separating clusters into panel sub-figures.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4.4 Hub identification -->
+          <div class="content-section reveal" id="hubs">
+            <span class="section-label">// section 4.4</span>
+            <h2>Identifying hub proteins in practice</h2>
+            <p>Hub identification is the most common analytical goal in PPI network analysis. Here is the standard workflow used in neuroscience papers:</p>
+
+            <div class="card" style="margin:1.5rem 0;">
+              <h4 style="margin-bottom:1rem;">Standard hub identification pipeline</h4>
+              <ul class="step-list">
+                <li>
+                  <div>
+                    <strong>Set degree threshold.</strong> After running NetworkAnalyzer in Cytoscape, sort nodes by degree descending. The top 10% by degree are conventionally called "hub proteins". For a 50-node network, the top 5 nodes are your hubs. For a 200-node network, the top 20. Some papers define hubs as degree &gt; mean + 2 standard deviations — state your criterion clearly in the Methods.
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <strong>Confirm with betweenness centrality.</strong> Hub proteins typically also have high betweenness. The intersection of "top 10% by degree" and "top 10% by betweenness" gives you the most important hub proteins — nodes that are both highly connected AND structurally essential for network communication. These are your highest-priority candidates for further investigation.
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <strong>Validate against literature.</strong> Cross-reference your identified hubs with disease databases (DisGeNET, OMIM) and existing functional data. If you identified APP as a hub in an AD network and CDK5 as a hub in a tau phosphorylation analysis — both have extensive experimental validation. Unexpected hubs with no prior disease association are interesting candidates for novel target identification.
+                  </div>
+                </li>
+                <li>
+                  <div>
+                    <strong>Report hub proteins in a table.</strong> Standard reporting includes: gene symbol, degree, betweenness centrality, known disease associations (from DisGeNET), and relevant GO annotations. This table typically appears in the main text or supplementary data of a paper.
+                  </div>
+                </li>
+              </ul>
+            </div>
+
+            <div class="callout callout--warn">
+              <div class="callout__icon">⚠️</div>
+              <div>
+                <div class="callout__title">Hub status is network-context dependent</div>
+                <p>A protein's hub status depends entirely on which proteins you included in your analysis and which confidence threshold you used. TP53 appears as a hub in almost every PPI network because it has an enormous number of curated interactions in STRING. Before concluding that a protein is "a hub in your disease network", check whether it would also appear as a hub in a random set of the same size from the same organism. Some papers report a "hub enrichment score" that compares the degree of their identified hubs to a background distribution — this is good practice.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapter nav -->
+          <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top:1px solid var(--border); margin-top:2rem;">
+            <a href="03-enrichment.html" class="btn btn--ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Chapter 3: Enrichment
+            </a>
+            <a href="05-worked-examples.html" class="btn btn--primary">
+              Chapter 5: Worked Examples
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+        </div>
+
+        <aside>
+          <nav class="toc" aria-label="Table of contents">
+            <div class="toc__title">In this chapter</div>
+            <ul class="toc__list">
+              <li><a href="#relationship">4.1 Metascape &amp; Cytoscape relationship</a></li>
+              <li><a href="#metascape-network">4.2 Metascape network analysis</a></li>
+              <li><a href="#cytoscape">4.3 Cytoscape workflow</a></li>
+              <li><a href="#hubs">4.4 Hub identification</a></li>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · Chapter 4: Network Analysis</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="05-worked-examples.html">Next: Worked Examples →</a></li>
+          <li><a href="07-references.html">References</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/interactive.js"></script>
+</body>
+</html>

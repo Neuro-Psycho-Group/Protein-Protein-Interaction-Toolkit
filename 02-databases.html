@@ -1,0 +1,762 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 2: PPI Databases — PPI Guidebook</title>
+  <meta name="description" content="A comprehensive guide to STRING, BioGRID, IntAct, and other PPI databases — how they work, what their confidence scores mean, and how to read their output." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    .content-section {
+      margin-bottom: 4rem;
+      scroll-margin-top: 90px;
+    }
+    .content-section h2 { font-size: clamp(1.5rem, 3vw, 2rem); margin-bottom: 1.25rem; }
+    .content-section h3 { font-size: 1.2rem; margin: 2rem 0 0.75rem; }
+    .content-section p  { font-size: 0.97rem; }
+
+    /* STRING output annotated mockup */
+    .string-mockup {
+      background: #0a1220;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .string-mockup__bar {
+      background: var(--navy-light);
+      border-bottom: 1px solid var(--border);
+      padding: 0.75rem 1rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+
+    .string-mockup__dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+
+    .string-mockup__url {
+      font-family: var(--font-mono);
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-left: 0.5rem;
+    }
+
+    .string-mockup__body {
+      padding: 2rem;
+      position: relative;
+    }
+
+    /* Annotated screenshot style annotations */
+    .annotated-wrap {
+      position: relative;
+    }
+
+    .annotation {
+      position: absolute;
+      background: var(--navy-card);
+      border: 1px solid var(--border-teal);
+      border-radius: 8px;
+      padding: 0.6rem 0.9rem;
+      font-size: 0.76rem;
+      color: var(--text-secondary);
+      max-width: 200px;
+      line-height: 1.45;
+      pointer-events: none;
+      z-index: 5;
+    }
+
+    .annotation strong { color: var(--teal); display: block; margin-bottom: 0.15rem; font-size: 0.78rem; }
+
+    .annotation__line {
+      position: absolute;
+      background: var(--teal);
+      height: 1px;
+      pointer-events: none;
+      z-index: 4;
+    }
+
+    /* Evidence channel legend */
+    .evidence-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+      gap: 1rem;
+      margin: 1.5rem 0;
+    }
+
+    .evidence-card {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem;
+      border-left: 3px solid;
+    }
+
+    .evidence-card h4 { font-size: 0.88rem; margin-bottom: 0.4rem; }
+    .evidence-card p  { font-size: 0.8rem; line-height: 1.55; }
+
+    /* Confidence slider */
+    .slider-section {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 2rem;
+      margin: 1.5rem 0;
+    }
+
+    .slider-track {
+      position: relative;
+      margin: 1.5rem 0;
+    }
+
+    .slider-track input[type=range] {
+      width: 100%;
+      -webkit-appearance: none;
+      height: 4px;
+      background: linear-gradient(90deg, var(--rose) 0%, var(--amber) 40%, var(--teal) 70%, var(--lavender) 100%);
+      border-radius: 4px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    .slider-track input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--teal);
+      cursor: pointer;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.4);
+    }
+
+    .slider-labels {
+      display: flex;
+      justify-content: space-between;
+      font-family: var(--font-mono);
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 0.5rem;
+    }
+
+    .slider-output-row {
+      display: flex;
+      align-items: flex-start;
+      gap: 2rem;
+      margin-top: 1.5rem;
+    }
+
+    #confidence-value {
+      font-family: var(--font-display);
+      font-size: 3rem;
+      font-weight: 800;
+      line-height: 1;
+      transition: color 0.3s;
+      min-width: 100px;
+    }
+
+    #confidence-desc {
+      font-size: 0.9rem;
+      line-height: 1.65;
+      transition: color 0.3s;
+      padding-top: 0.5rem;
+    }
+
+    /* STRING network SVG mockup */
+    .network-svg-wrap {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+    }
+
+    /* Database comparison table */
+    .db-feature { font-size: 0.82rem; }
+    .check  { color: var(--teal); font-size: 1rem; }
+    .cross  { color: var(--rose); font-size: 0.9rem; }
+    .partial { color: var(--amber); font-size: 0.9rem; }
+
+    /* Step-by-step walkthrough */
+    .walkthrough {
+      background: var(--navy-card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+      margin: 1.5rem 0;
+    }
+
+    .walkthrough__header {
+      background: var(--navy-light);
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .walkthrough__header h4 { font-size: 0.9rem; }
+
+    .walkthrough__steps {
+      padding: 1.5rem;
+    }
+
+    .wstep {
+      display: flex;
+      gap: 1.25rem;
+      margin-bottom: 1.5rem;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .wstep:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+
+    .wstep__num {
+      min-width: 28px; height: 28px;
+      border-radius: 50%;
+      background: var(--teal-glow);
+      border: 1px solid var(--border-teal);
+      color: var(--teal);
+      font-family: var(--font-display);
+      font-size: 0.8rem;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      margin-top: 0.1rem;
+    }
+
+    .wstep__content h4 { font-size: 0.92rem; margin-bottom: 0.4rem; }
+    .wstep__content p  { font-size: 0.85rem; line-height: 1.6; }
+    .wstep__content code { font-size: 0.82rem; }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><span class="nav__logo-dot"></span>PPI Guide</a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" style="background: radial-gradient(ellipse 80% 60% at 40% 50%, rgba(74,158,255,0.06) 0%, transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">Chapter 02</span>
+        <span class="badge badge--lav">Databases</span>
+      </div>
+      <h1 class="animate-fade-up">PPI Databases</h1>
+      <p class="animate-fade-up animate-fade-up--d1">
+        STRING, BioGRID, IntAct — where does all this interaction data come from, how is it scored, and what does a database output actually mean? This chapter walks you through the major PPI databases and gives you a visual guide to reading what they return.
+      </p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="reading-layout">
+        <div>
+
+          <!-- 2.1 Overview -->
+          <div class="content-section reveal" id="overview">
+            <span class="section-label">// section 2.1</span>
+            <h2>Where does PPI data come from?</h2>
+            <p>
+              PPI databases don't generate their own interaction data — they <em>aggregate</em> data from experiments published in primary research papers, then add computational predictions on top. This is crucial to understand: the interactions you see in STRING or BioGRID were measured by biologists using specific experimental methods, each with their own strengths and limitations.
+            </p>
+
+            <p>The main experimental sources, in order of directness of evidence, are:</p>
+
+            <div class="evidence-grid stagger-children" style="margin-top:1.5rem;">
+              <div class="evidence-card" style="border-color:#00c9a7;">
+                <h4 class="highlight">Y2H (Yeast Two-Hybrid)</h4>
+                <p>Tests binary interactions in yeast cells. High-throughput but relatively high false-positive rate (~30–50% for genome-scale screens). Best for discovering new direct interactions. Can miss weak/transient ones.</p>
+              </div>
+              <div class="evidence-card" style="border-color:#4a9eff;">
+                <h4 style="color:#4a9eff;">AP-MS (Co-purification)</h4>
+                <p>Pulls down one protein and identifies all co-purifying partners by mass spectrometry. Detects complexes, not just binary pairs. Very sensitive but can't distinguish direct vs indirect contacts within the complex.</p>
+              </div>
+              <div class="evidence-card" style="border-color:#f5a623;">
+                <h4 class="highlight--amber">Co-immunoprecipitation (Co-IP)</h4>
+                <p>Uses an antibody to pull down one protein; western blot confirms the partner. Typically low-throughput (one interaction at a time) but very specific and biologically relevant. Gold standard for validating an interaction.</p>
+              </div>
+              <div class="evidence-card" style="border-color:#a78bfa;">
+                <h4 class="highlight--lav">Biophysical (SPR, ITC, FRET)</h4>
+                <p>Surface Plasmon Resonance, Isothermal Calorimetry, and FRET directly measure binding kinetics and affinity. Very high-quality evidence, but low-throughput. These are the interactions databases flag as highest-confidence experimental evidence.</p>
+              </div>
+              <div class="evidence-card" style="border-color:#ff6b8a;">
+                <h4 class="highlight--rose">Proximity labelling (BioID, APEX)</h4>
+                <p>An enzyme fused to a bait protein biotinylates all nearby proteins. Captures transient and weak interactions that Y2H or Co-IP might miss. Increasingly important for synaptic and nuclear PPI studies.</p>
+              </div>
+              <div class="evidence-card" style="border-color:#00c9a7;">
+                <h4 class="highlight">Computational prediction</h4>
+                <p>STRING's "text mining", "co-expression", "genomic context", and "homology" channels are computational, not experimental. Useful but should be weighted lower. Many databases allow you to turn these off and view experimental-only networks.</p>
+              </div>
+            </div>
+
+            <div class="callout callout--warn" style="margin-top:1.5rem;">
+              <div class="callout__icon">⚠️</div>
+              <div>
+                <div class="callout__title">The key implication for your analysis</div>
+                <p>When STRING reports an interaction with a confidence score of 0.9, this doesn't mean the interaction is true with 90% probability. It means <em>the combined evidence from multiple channels supports this interaction being real</em>. A score of 0.9 based purely on text mining is far less reliable than 0.7 based on two independent experimental methods. Always check <em>which evidence channels</em> contribute to a score.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2.2 STRING -->
+          <div class="content-section reveal" id="string-db">
+            <span class="section-label">// section 2.2</span>
+            <h2>STRING: the go-to PPI database</h2>
+            <p>
+              <strong>STRING</strong> (Search Tool for the Retrieval of Interacting Genes/Proteins) is maintained by the Bork group at EMBL Heidelberg and updated roughly every 2–3 years (current version: STRING v12.0, released 2023). It covers over 14,094 organisms and integrates more than 67 billion interactions — though the human-focused subset of well-evidenced interactions is much smaller and more practically useful.
+            </p>
+            <p>
+              STRING is the most widely used PPI database in neuroscience publications because it is freely accessible, returns visual networks immediately, and integrates multiple evidence channels into a single combined score. It also links directly to GO enrichment analysis and pathway databases (KEGG, Reactome) from the same interface.
+            </p>
+
+            <h3>STRING's seven evidence channels</h3>
+            <p>Every edge in STRING has a score for each of seven evidence channels. The combined score is calculated by combining these channel scores probabilistically (correcting for random interactions). Understanding each channel tells you <em>why</em> an interaction is shown:</p>
+
+            <div class="table-wrap reveal" style="margin:1.5rem 0;">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Channel</th>
+                    <th>What it measures</th>
+                    <th>Type</th>
+                    <th>Reliability for PPI</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="td-teal">Neighbourhood</td>
+                    <td class="db-feature">Genes physically adjacent on genome in other organisms — suggests co-evolution of function</td>
+                    <td><span class="badge badge--lav" style="font-size:0.65rem;">Computational</span></td>
+                    <td>Low–medium; indirect</td>
+                  </tr>
+                  <tr>
+                    <td class="td-teal">Gene fusion</td>
+                    <td class="db-feature">The two genes are fused into one in some other organism, implying functional linkage</td>
+                    <td><span class="badge badge--lav" style="font-size:0.65rem;">Computational</span></td>
+                    <td>Medium; rare but reliable when present</td>
+                  </tr>
+                  <tr>
+                    <td class="td-teal">Co-occurrence</td>
+                    <td class="db-feature">Both genes are present or absent together across species (phylogenetic profiling)</td>
+                    <td><span class="badge badge--lav" style="font-size:0.65rem;">Computational</span></td>
+                    <td>Low–medium</td>
+                  </tr>
+                  <tr>
+                    <td class="td-amber">Co-expression</td>
+                    <td class="db-feature">Genes show correlated expression patterns across conditions/tissues (e.g. from RNA-seq datasets)</td>
+                    <td><span class="badge badge--lav" style="font-size:0.65rem;">Computational</span></td>
+                    <td>Medium; correlation ≠ interaction</td>
+                  </tr>
+                  <tr>
+                    <td class="td-amber">Text mining</td>
+                    <td class="db-feature">Both gene names co-occur in PubMed abstracts and full-text articles</td>
+                    <td><span class="badge badge--lav" style="font-size:0.65rem;">Computational</span></td>
+                    <td>Low–medium; prone to false positives from review articles</td>
+                  </tr>
+                  <tr>
+                    <td style="color:var(--teal); font-weight:500;">Databases</td>
+                    <td class="db-feature">Manually curated interactions from databases like BioGRID, IntAct, MINT, DIP, HPRD</td>
+                    <td><span class="badge badge--teal" style="font-size:0.65rem;">Experimental</span></td>
+                    <td><strong style="color:var(--teal);">High</strong> — human-curated from primary literature</td>
+                  </tr>
+                  <tr>
+                    <td style="color:var(--teal); font-weight:500;">Experiments</td>
+                    <td class="db-feature">Directly imported experimental data: Y2H, AP-MS, Co-IP, biophysical measurements</td>
+                    <td><span class="badge badge--teal" style="font-size:0.65rem;">Experimental</span></td>
+                    <td><strong style="color:var(--teal);">Very high</strong> — most reliable channel</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout callout--key" style="margin-bottom:2rem;">
+              <div class="callout__icon">🔑</div>
+              <div>
+                <div class="callout__title">Best practice for channel selection</div>
+                <p>For a publication-quality PPI analysis, many researchers set STRING to show only the <strong>"Databases" and "Experiments"</strong> channels (and optionally "Co-expression" if looking for functional associations). This dramatically reduces false positives. In STRING's settings panel, deselect "Text mining", "Neighbourhood", "Gene fusion", and "Co-occurrence" to get a cleaner network. You'll typically see far fewer — but much more reliable — interactions.</p>
+              </div>
+            </div>
+
+            <h3>Reading STRING output: an annotated guide</h3>
+            <p>When you run a STRING query (e.g. enter "APP" in the search box, select <em>Homo sapiens</em>, set confidence to 0.7), you get a visual network and a results table. Here is what every element means:</p>
+
+            <!-- Annotated STRING output mockup -->
+            <div class="string-mockup reveal" style="margin:1.5rem 0;">
+              <div class="string-mockup__bar">
+                <div class="string-mockup__dot" style="background:#ff6b8a;"></div>
+                <div class="string-mockup__dot" style="background:#f5a623;"></div>
+                <div class="string-mockup__dot" style="background:#00c9a7;"></div>
+                <span class="string-mockup__url">string-db.org — APP, Homo sapiens, confidence ≥ 0.7</span>
+              </div>
+              <div class="string-mockup__body">
+                <!-- Schematic network SVG -->
+                <svg viewBox="0 0 600 360" width="100%" style="max-height:360px; display:block;">
+                  <!-- Edges -->
+                  <line x1="300" y1="180" x2="180" y2="100" stroke="rgba(0,201,167,0.8)" stroke-width="4"/>
+                  <line x1="300" y1="180" x2="420" y2="100" stroke="rgba(0,201,167,0.8)" stroke-width="4"/>
+                  <line x1="300" y1="180" x2="120" y2="220" stroke="rgba(0,201,167,0.6)" stroke-width="3"/>
+                  <line x1="300" y1="180" x2="480" y2="220" stroke="rgba(0,201,167,0.6)" stroke-width="3"/>
+                  <line x1="300" y1="180" x2="220" y2="300" stroke="rgba(0,201,167,0.4)" stroke-width="2"/>
+                  <line x1="300" y1="180" x2="380" y2="300" stroke="rgba(0,201,167,0.4)" stroke-width="2"/>
+                  <line x1="180" y1="100" x2="420" y2="100" stroke="rgba(74,158,255,0.5)" stroke-width="2"/>
+                  <line x1="120" y1="220" x2="220" y2="300" stroke="rgba(167,139,250,0.4)" stroke-width="1.5"/>
+
+                  <!-- Central APP node -->
+                  <circle cx="300" cy="180" r="28" fill="rgba(0,201,167,0.2)" stroke="#00c9a7" stroke-width="2.5"/>
+                  <circle cx="300" cy="180" r="36" fill="none" stroke="rgba(0,201,167,0.3)" stroke-width="1" stroke-dasharray="4,3"/>
+                  <text x="300" y="184" text-anchor="middle" fill="#00c9a7" font-size="11" font-family="DM Mono" font-weight="500">APP</text>
+
+                  <!-- Interactors -->
+                  <circle cx="180" cy="100" r="18" fill="rgba(74,158,255,0.15)" stroke="#4a9eff" stroke-width="1.5"/>
+                  <text x="180" y="104" text-anchor="middle" fill="#4a9eff" font-size="9" font-family="DM Mono">PSEN1</text>
+
+                  <circle cx="420" cy="100" r="18" fill="rgba(74,158,255,0.15)" stroke="#4a9eff" stroke-width="1.5"/>
+                  <text x="420" y="104" text-anchor="middle" fill="#4a9eff" font-size="9" font-family="DM Mono">BACE1</text>
+
+                  <circle cx="120" cy="220" r="16" fill="rgba(245,166,35,0.15)" stroke="#f5a623" stroke-width="1.5"/>
+                  <text x="120" y="224" text-anchor="middle" fill="#f5a623" font-size="9" font-family="DM Mono">APOE</text>
+
+                  <circle cx="480" cy="220" r="14" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+                  <text x="480" y="224" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="DM Mono">CLU</text>
+
+                  <circle cx="220" cy="300" r="13" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+                  <text x="220" y="304" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="DM Mono">BIN1</text>
+
+                  <circle cx="380" cy="300" r="13" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="1.5"/>
+                  <text x="380" y="304" text-anchor="middle" fill="#a78bfa" font-size="9" font-family="DM Mono">MAPT</text>
+
+                  <!-- Score annotations -->
+                  <text x="225" y="130" fill="rgba(255,255,255,0.5)" font-size="8.5" font-family="DM Mono">0.998</text>
+                  <text x="345" y="130" fill="rgba(255,255,255,0.5)" font-size="8.5" font-family="DM Mono">0.996</text>
+                  <text x="160" y="205" fill="rgba(255,255,255,0.4)" font-size="8.5" font-family="DM Mono">0.854</text>
+                  <text x="398" y="205" fill="rgba(255,255,255,0.4)" font-size="8.5" font-family="DM Mono">0.721</text>
+                  <text x="248" y="257" fill="rgba(255,255,255,0.35)" font-size="8" font-family="DM Mono">0.683</text>
+                  <text x="330" y="257" fill="rgba(255,255,255,0.35)" font-size="8" font-family="DM Mono">0.713</text>
+
+                  <!-- Legend -->
+                  <rect x="20" y="290" width="140" height="60" rx="6" fill="rgba(13,22,40,0.8)" stroke="rgba(255,255,255,0.1)"/>
+                  <text x="30" y="306" fill="#8fa3c8" font-size="8" font-family="DM Mono">Edge width = score</text>
+                  <line x1="30" y1="318" x2="70" y2="318" stroke="rgba(0,201,167,0.9)" stroke-width="4"/>
+                  <text x="75" y="321" fill="#8fa3c8" font-size="7.5" font-family="DM Mono">High (≥0.9)</text>
+                  <line x1="30" y1="332" x2="70" y2="332" stroke="rgba(0,201,167,0.5)" stroke-width="2"/>
+                  <text x="75" y="335" fill="#8fa3c8" font-size="7.5" font-family="DM Mono">Medium (0.7–0.9)</text>
+                  <line x1="30" y1="346" x2="70" y2="346" stroke="rgba(0,201,167,0.3)" stroke-width="1.5" stroke-dasharray="3,2"/>
+                  <text x="75" y="349" fill="#8fa3c8" font-size="7.5" font-family="DM Mono">Min threshold</text>
+                </svg>
+
+                <!-- Annotation overlays (CSS positioned) -->
+                <div style="margin-top:1.5rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap:0.75rem;">
+                  <div style="background:var(--navy-light); border:1px solid var(--border-teal); border-radius:8px; padding:0.8rem; font-size:0.8rem;">
+                    <strong style="color:var(--teal); display:block; margin-bottom:0.3rem;">① Node size = expression / study coverage</strong>
+                    In STRING, node size can reflect the number of studies in which this protein was identified, or optionally expression level. Larger nodes draw the eye — but be careful: this partly reflects <em>study bias</em>, not necessarily biological importance.
+                  </div>
+                  <div style="background:var(--navy-light); border:1px solid rgba(74,158,255,0.3); border-radius:8px; padding:0.8rem; font-size:0.8rem;">
+                    <strong style="color:#4a9eff; display:block; margin-bottom:0.3rem;">② Edge colour = evidence channel</strong>
+                    By default: green = neighbourhood/co-occurrence; black = co-expression; blue = databases; red = gene fusion; yellow = text mining; light green = homology. In "evidence mode" view, each edge is a coloured bundle of contributing channels.
+                  </div>
+                  <div style="background:var(--navy-light); border:1px solid rgba(245,166,35,0.3); border-radius:8px; padding:0.8rem; font-size:0.8rem;">
+                    <strong style="color:#f5a623; display:block; margin-bottom:0.3rem;">③ Edge width = combined score</strong>
+                    Thicker edges mean higher combined confidence scores. An APP–PSEN1 edge at 0.998 appears as a thick line; a borderline 0.71 edge appears as a thin line. This is your visual filter — thin lines at your threshold deserve extra scrutiny.
+                  </div>
+                  <div style="background:var(--navy-light); border:1px solid rgba(167,139,250,0.3); border-radius:8px; padding:0.8rem; font-size:0.8rem;">
+                    <strong style="color:#a78bfa; display:block; margin-bottom:0.3rem;">④ Node colour = GO annotation cluster</strong>
+                    In the "molecular function" colour mode, nodes are coloured by their primary GO annotation. Proteins of the same colour share a functional category. This is a visual shortcut to understanding network structure before running formal enrichment analysis.
+                  </div>
+                  <div style="background:var(--navy-light); border:1px solid var(--border-teal); border-radius:8px; padding:0.8rem; font-size:0.8rem;">
+                    <strong style="color:var(--teal); display:block; margin-bottom:0.3rem;">⑤ The edge between non-queried proteins</strong>
+                    Note PSEN1–BACE1 connected by a blue edge. STRING adds interaction edges <em>between</em> your query interactors, not just between them and your query protein. This reveals the network structure — clusters of interactors that also interact with each other form putative complexes.
+                  </div>
+                  <div style="background:var(--navy-light); border:1px solid rgba(255,107,138,0.3); border-radius:8px; padding:0.8rem; font-size:0.8rem;">
+                    <strong style="color:#ff6b8a; display:block; margin-bottom:0.3rem;">⑥ The "enrichment" tab below the network</strong>
+                    After viewing your network, STRING's "Analysis" tab automatically runs GO enrichment on your queried proteins. This quick enrichment is a useful sanity check, but for publication-level analysis, Metascape or g:Profiler give more flexible and comprehensive results (Chapter 3).
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Confidence slider -->
+            <h3>Choosing a confidence threshold</h3>
+            <p>The most important decision when using STRING is your confidence threshold. Drag the slider to understand the trade-offs:</p>
+
+            <div class="slider-section reveal">
+              <div class="slider-track">
+                <input type="range" id="confidence-slider" min="0.15" max="1" step="0.05" value="0.70" aria-label="STRING confidence threshold" />
+                <div class="slider-labels">
+                  <span>0.15 (lowest)</span>
+                  <span>0.4</span>
+                  <span>0.7 ★</span>
+                  <span>0.9</span>
+                  <span>1.0</span>
+                </div>
+              </div>
+              <div class="slider-output-row">
+                <span id="confidence-value">0.70</span>
+                <div>
+                  <p id="confidence-desc"></p>
+                  <div id="confidence-bar" style="height:3px; background: var(--teal); border-radius:2px; margin-top:0.75rem; transition: width 0.3s, background 0.3s; max-width:300px;"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2.3 BioGRID -->
+          <div class="content-section reveal" id="biogrid">
+            <span class="section-label">// section 2.3</span>
+            <h2>BioGRID: experimentally focused</h2>
+            <p>
+              <strong>BioGRID</strong> (Biological General Repository for Interaction Datasets) is a curated repository of protein and genetic interactions, maintained by the Tyers lab at Université de Montréal. Unlike STRING, BioGRID does <em>not</em> include computational predictions — every interaction in BioGRID was detected experimentally and manually extracted from a primary paper by a trained curator.
+            </p>
+            <p>
+              As of 2024, BioGRID contains over 2.5 million interactions across ~70 species. For the human interactome specifically, BioGRID is arguably the highest-quality resource because of its strict experimental curation standard. However, because it doesn't use prediction, its coverage is lower than STRING.
+            </p>
+
+            <div class="grid-2" style="gap:1.25rem; margin:1.5rem 0;">
+              <div class="card card--teal">
+                <h4 style="color:var(--teal); margin-bottom:0.6rem;">When to use BioGRID</h4>
+                <p style="font-size:0.87rem;">When you need to know the experimental method behind an interaction — BioGRID lets you filter by detection method (Y2H, Co-IP, AP-MS, etc.) and by throughput (high-throughput vs low-throughput). This is invaluable when critically evaluating the evidence for a specific interaction before proposing follow-up experiments.</p>
+              </div>
+              <div class="card card--amber">
+                <h4 style="color:var(--amber); margin-bottom:0.6rem;">BioGRID vs STRING in practice</h4>
+                <p style="font-size:0.87rem;">STRING feeds from BioGRID (listed as one of its "Databases" channel sources). So interactions in BioGRID will appear in STRING too, but STRING will give them a higher combined score if they're also supported by co-expression or text mining. For verification of a specific interaction, check BioGRID directly for the source paper.</p>
+              </div>
+            </div>
+
+            <div class="walkthrough reveal">
+              <div class="walkthrough__header">
+                <span style="font-size:1rem;">🗄️</span>
+                <h4>How to query BioGRID for a specific interaction</h4>
+              </div>
+              <div class="walkthrough__steps">
+                <div class="wstep">
+                  <div class="wstep__num">1</div>
+                  <div class="wstep__content">
+                    <h4>Navigate to thebiogrid.org</h4>
+                    <p>Go to the BioGRID website and use the search bar. Enter your protein of interest — for example, <code>SNCA</code> — and select <em>Homo sapiens</em> from the organism dropdown.</p>
+                  </div>
+                </div>
+                <div class="wstep">
+                  <div class="wstep__num">2</div>
+                  <div class="wstep__content">
+                    <h4>Review the interaction table</h4>
+                    <p>BioGRID returns a table listing each interaction partner, the detection method, the throughput category (high vs low), and a link to the PubMed source paper. Unlike STRING's visual network, BioGRID presents raw interaction records — one row per experimentally detected interaction, with full provenance.</p>
+                  </div>
+                </div>
+                <div class="wstep">
+                  <div class="wstep__num">3</div>
+                  <div class="wstep__content">
+                    <h4>Filter by detection method</h4>
+                    <p>Use the "Detection Method" filter to show only, say, Co-IP interactions. For neurodegeneration research, Co-IP and Co-localisation in human brain tissue carry more biological weight than interactions detected only in overexpression systems. This level of filtering is <em>not</em> available in STRING.</p>
+                  </div>
+                </div>
+                <div class="wstep">
+                  <div class="wstep__num">4</div>
+                  <div class="wstep__content">
+                    <h4>Cross-reference with STRING</h4>
+                    <p>For interactions that appear in BioGRID but not at the top of your STRING output, check the STRING evidence view for that specific protein pair (you can enter both gene names in STRING's "compare proteins" mode) to see exactly which channels contributed. If STRING shows it mainly via text mining but BioGRID confirms it experimentally, you should trust BioGRID's assessment.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2.4 Other databases -->
+          <div class="content-section reveal" id="other-dbs">
+            <span class="section-label">// section 2.4</span>
+            <h2>IntAct, MINT, DIP — the specialist databases</h2>
+            <p>
+              Beyond STRING and BioGRID, several other curated databases are worth knowing. You will see them cited in papers and as source databases within STRING's "Databases" channel:
+            </p>
+
+            <div class="accordion reveal" style="margin:1.5rem 0;">
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  IntAct — EMBL-EBI's curated interaction database
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p>IntAct (European Molecular Biology Laboratory – European Bioinformatics Institute) is one of the most rigorously curated PPI databases. All interactions are curated from primary literature using the PSI-MITAB standard, meaning each interaction record has a defined experimental detection method, author, and PubMed ID. IntAct is a core member of the IMEx Consortium, which ensures consistent curation standards across member databases. For verification purposes, IntAct is often the most authoritative source.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  MINT — Molecular INTeraction database
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p>MINT focuses on experimentally verified functional interactions. Now maintained alongside IntAct under the IMEx Consortium. In practice, MINT's data is merged into IntAct for most query purposes. Useful to know when reading older papers that cite MINT as a data source — this data is still accessible via the IntAct portal.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  DIP — Database of Interacting Proteins
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p>DIP is one of the oldest PPI databases, developed at UCLA. It maintains a high-quality, manually curated core dataset and has particularly good coverage of yeast two-hybrid data. STRING includes DIP as one of its "Databases" channel sources. For most current analyses, STRING effectively subsumes DIP, but DIP can be useful if you want to specifically understand the Y2H evidence base for an interaction.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  HPRD — Human Protein Reference Database
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p>HPRD focuses exclusively on human proteins and integrates PPI data with post-translational modifications, disease associations, and subcellular localisation. It was last updated in 2010 and is no longer actively maintained — however, because many early neuroscience PPI papers used HPRD, it's still referenced in the literature. Be cautious when citing HPRD data, as it predates many high-throughput proteomics datasets that have since updated our understanding of the human interactome.</p>
+                </div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 2.5 Database comparison -->
+          <div class="content-section reveal" id="comparison">
+            <span class="section-label">// section 2.5</span>
+            <h2>Choosing the right database: a comparison</h2>
+
+            <div class="table-wrap reveal">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Feature</th>
+                    <th>STRING</th>
+                    <th>BioGRID</th>
+                    <th>IntAct</th>
+                    <th>DIP</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td class="db-feature">Visual network output</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="partial">~</span></td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="cross">✗</span></td>
+                  </tr>
+                  <tr>
+                    <td class="db-feature">Computational predictions</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="cross">✗</span></td>
+                  </tr>
+                  <tr>
+                    <td class="db-feature">Experimental data only option</td>
+                    <td><span class="check">✓</span> (filter channels)</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="check">✓</span></td>
+                  </tr>
+                  <tr>
+                    <td class="db-feature">Per-interaction method info</td>
+                    <td><span class="partial">~</span> (via evidence view)</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="check">✓</span></td>
+                  </tr>
+                  <tr>
+                    <td class="db-feature">Integrated GO enrichment</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="cross">✗</span></td>
+                    <td><span class="cross">✗</span></td>
+                  </tr>
+                  <tr>
+                    <td class="db-feature">Multi-species coverage</td>
+                    <td><span class="check">✓</span> 14,094 organisms</td>
+                    <td><span class="check">✓</span> ~70 organisms</td>
+                    <td><span class="check">✓</span></td>
+                    <td><span class="partial">~</span></td>
+                  </tr>
+                  <tr>
+                    <td class="db-feature">Last updated</td>
+                    <td class="td-teal">2023 (v12)</td>
+                    <td class="td-teal">Ongoing</td>
+                    <td class="td-teal">Ongoing</td>
+                    <td class="td-amber">2014 (limited)</td>
+                  </tr>
+                  <tr>
+                    <td class="db-feature">Best for…</td>
+                    <td class="db-feature">Initial exploration, visual network, GO overview</td>
+                    <td class="db-feature">Verifying experimental evidence</td>
+                    <td class="db-feature">High-quality curation, method details</td>
+                    <td class="db-feature">Y2H evidence, historical data</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="callout callout--info" style="margin-top:1.5rem;">
+              <div class="callout__icon">💡</div>
+              <div>
+                <div class="callout__title">Recommended workflow</div>
+                <p>For most neuroscience PPI analyses: <strong>(1)</strong> use STRING with "Databases + Experiments" channels at confidence 0.7 to generate your network; <strong>(2)</strong> verify key hub interactions in BioGRID to confirm experimental evidence and detection method; <strong>(3)</strong> export the network to Metascape or Cytoscape for enrichment analysis and publication-quality figures. This is the workflow you'll see used in the worked examples in Chapter 5.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapter nav -->
+          <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top: 1px solid var(--border); margin-top:2rem;">
+            <a href="01-ppi-basics.html" class="btn btn--ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Chapter 1: Basics
+            </a>
+            <a href="03-enrichment.html" class="btn btn--primary">
+              Chapter 3: Enrichment
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+
+        </div>
+
+        <!-- TOC -->
+        <aside>
+          <nav class="toc" aria-label="Table of contents">
+            <div class="toc__title">In this chapter</div>
+            <ul class="toc__list">
+              <li><a href="#overview">2.1 Where does PPI data come from?</a></li>
+              <li><a href="#string-db">2.2 STRING</a></li>
+              <li><a href="#biogrid">2.3 BioGRID</a></li>
+              <li><a href="#other-dbs">2.4 IntAct, MINT, DIP</a></li>
+              <li><a href="#comparison">2.5 Database comparison</a></li>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · Chapter 2: PPI Databases</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="03-enrichment.html">Next: Enrichment →</a></li>
+          <li><a href="07-references.html">References</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/interactive.js"></script>
+</body>
+</html>

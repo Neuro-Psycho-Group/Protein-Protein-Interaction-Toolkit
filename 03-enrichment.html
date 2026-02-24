@@ -1,0 +1,437 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chapter 3: GO &amp; Enrichment Analysis — PPI Guidebook</title>
+  <meta name="description" content="Understand Gene Ontology, enrichment analysis, g:Profiler, and Metascape — the tools used to interpret what a list of interacting proteins actually does biologically." />
+  <link rel="stylesheet" href="assets/css/main.css" />
+  <link rel="stylesheet" href="assets/css/animations.css" />
+  <style>
+    .content-section { margin-bottom:4rem; scroll-margin-top:90px; }
+    .content-section h2 { font-size:clamp(1.5rem,3vw,2rem); margin-bottom:1.25rem; }
+    .content-section h3 { font-size:1.2rem; margin:2rem 0 0.75rem; }
+    .content-section p  { font-size:0.97rem; }
+    .go-ns-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:1.25rem; margin:1.5rem 0; }
+    .go-card { border-radius:14px; padding:1.5rem; border:1px solid; position:relative; overflow:hidden; }
+    .go-card::before { content:attr(data-abbr); position:absolute; bottom:-10px; right:-5px; font-family:var(--font-display); font-size:4rem; font-weight:800; opacity:0.06; line-height:1; }
+    .go-card--bp { background:rgba(0,201,167,0.06); border-color:rgba(0,201,167,0.25); }
+    .go-card--mf { background:rgba(245,166,35,0.06); border-color:rgba(245,166,35,0.25); }
+    .go-card--cc { background:rgba(167,139,250,0.06); border-color:rgba(167,139,250,0.25); }
+    .go-card__tag { font-family:var(--font-mono); font-size:0.65rem; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.6rem; }
+    .go-card h4 { font-size:1rem; margin-bottom:0.5rem; }
+    .go-card p  { font-size:0.83rem; line-height:1.6; }
+    .go-card__examples { margin-top:0.75rem; display:flex; flex-direction:column; gap:0.25rem; }
+    .go-example { font-family:var(--font-mono); font-size:0.72rem; padding:0.2rem 0.5rem; background:rgba(255,255,255,0.04); border-radius:4px; color:var(--text-muted); }
+    .tool-compare { display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; margin:1.5rem 0; }
+    @media(max-width:640px){ .tool-compare { grid-template-columns:1fr; } }
+    .tool-card { background:var(--navy-card); border:1px solid var(--border); border-radius:14px; padding:1.5rem; }
+    .tool-card__logo { font-family:var(--font-display); font-size:1.5rem; font-weight:800; margin-bottom:0.5rem; }
+    .tool-card__meta { font-family:var(--font-mono); font-size:0.7rem; color:var(--text-muted); margin-bottom:1rem; }
+    .tool-card p { font-size:0.85rem; line-height:1.6; }
+    .feature-list { list-style:none; margin-top:0.75rem; display:flex; flex-direction:column; gap:0.3rem; }
+    .feature-list li { font-size:0.83rem; color:var(--text-secondary); padding-left:1.25rem; position:relative; }
+    .feature-list li::before { content:'✓'; position:absolute; left:0; color:var(--teal); font-size:0.75rem; }
+    .feature-list li.warn::before { content:'~'; color:var(--amber); }
+    .walkthrough { background:var(--navy-card); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin:1.5rem 0; }
+    .wh { background:var(--navy-light); padding:1rem 1.5rem; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:0.75rem; }
+    .wh h4 { font-size:0.9rem; }
+    .ws-list { padding:1.5rem; }
+    .ws { display:flex; gap:1.25rem; margin-bottom:1.5rem; padding-bottom:1.5rem; border-bottom:1px solid var(--border); }
+    .ws:last-child { border-bottom:none; margin-bottom:0; padding-bottom:0; }
+    .ws__n { min-width:28px; height:28px; border-radius:50%; background:rgba(245,166,35,0.12); border:1px solid rgba(245,166,35,0.3); color:var(--amber); font-family:var(--font-display); font-size:0.8rem; font-weight:700; display:flex; align-items:center; justify-content:center; flex-shrink:0; margin-top:0.1rem; }
+    .ws__c h4 { font-size:0.92rem; margin-bottom:0.4rem; }
+    .ws__c p  { font-size:0.85rem; line-height:1.6; }
+    .ws__c code { font-size:0.82rem; }
+    .result-item { background:var(--navy-light); border:1px solid var(--border); border-radius:10px; padding:1rem 1.25rem; margin-bottom:0.75rem; }
+    .result-item__term { font-family:var(--font-display); font-size:0.88rem; font-weight:600; color:var(--text-primary); margin-bottom:0.3rem; }
+    .result-item__stats { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.4rem; }
+    .rs { font-family:var(--font-mono); font-size:0.72rem; padding:0.15rem 0.5rem; border-radius:4px; }
+    .rs-p { background:rgba(0,201,167,0.1); color:var(--teal); }
+    .rs-g { background:rgba(245,166,35,0.1); color:var(--amber); }
+    .rs-r { background:rgba(167,139,250,0.1); color:var(--lavender); }
+    .formula-box { background:rgba(245,166,35,0.05); border:1px solid rgba(245,166,35,0.2); color:var(--amber); border-radius:8px; padding:1rem 1.5rem; font-family:var(--font-mono); font-size:0.88rem; text-align:center; margin:1rem 0; }
+  </style>
+</head>
+<body>
+  <div class="progress-bar"></div>
+  <nav class="nav">
+    <div class="nav__inner">
+      <a href="index.html" class="nav__logo"><span class="nav__logo-dot"></span>PPI Guide</a>
+      <ul class="nav__links">
+        <li><a href="01-ppi-basics.html">1. Basics</a></li>
+        <li><a href="02-databases.html">2. Databases</a></li>
+        <li><a href="03-enrichment.html">3. Enrichment</a></li>
+        <li><a href="04-network-analysis.html">4. Networks</a></li>
+        <li><a href="05-worked-examples.html">5. Examples</a></li>
+        <li><a href="06-best-practices.html">6. Best Practice</a></li>
+        <li><a href="08-alphafold.html">8. AlphaFold</a></li>
+        <li><a href="07-references.html" class="nav__cta">References</a></li>
+      </ul>
+      <button class="nav__hamburger" aria-label="Toggle menu" aria-expanded="false"><span></span><span></span><span></span></button>
+    </div>
+  </nav>
+
+  <header class="page-hero" style="background:radial-gradient(ellipse 80% 60% at 50% 40%,rgba(245,166,35,0.07) 0%,transparent 70%);">
+    <div class="container">
+      <div class="page-hero__eyebrow">
+        <span class="page-hero__chapter">Chapter 03</span>
+        <span class="badge badge--amber">Enrichment</span>
+      </div>
+      <h1 class="animate-fade-up">GO &amp; Enrichment Analysis</h1>
+      <p class="animate-fade-up animate-fade-up--d1">You have a list of proteins from a STRING network. Now what? Gene Ontology and enrichment analysis turn that list into biological meaning — telling you which pathways, functions, and cellular locations are statistically over-represented, using g:Profiler and Metascape.</p>
+    </div>
+  </header>
+
+  <main>
+    <div class="container">
+      <div class="reading-layout">
+        <div>
+
+          <!-- 3.1 Gene Ontology -->
+          <div class="content-section reveal" id="go">
+            <span class="section-label">// section 3.1</span>
+            <h2>Gene Ontology: a shared biological vocabulary</h2>
+            <p><strong>Gene Ontology (GO)</strong> is a controlled, hierarchical vocabulary for describing gene and protein function, maintained by the Gene Ontology Consortium (est. 2000). Before GO, every lab used its own language for the same biology — making systematic comparisons impossible. GO provides ~43,000 standardised terms organised in a <span data-def="Directed Acyclic Graph: a hierarchical tree where each term can have multiple parent terms. A protein annotated to a specific child term automatically inherits all parent terms above it.">directed acyclic graph (DAG)</span> structure, so a protein annotated to a specific term automatically inherits all broader terms above it in the hierarchy.</p>
+            <p>GO terms are divided into three namespaces. Understanding which namespace a result comes from is the first step in interpreting what your enrichment result means:</p>
+
+            <div class="go-ns-grid stagger-children">
+              <div class="go-card go-card--bp" data-abbr="BP">
+                <div class="go-card__tag" style="color:var(--teal);">Biological Process (BP)</div>
+                <h4>What is the protein doing?</h4>
+                <p>A series of molecular events with a defined beginning and end — the biological "story" a group of proteins is involved in. Most enrichment analyses focus on BP terms since they describe the most immediately interpretable biology.</p>
+                <div class="go-card__examples">
+                  <div class="go-example">GO:0007271 · synaptic transmission, cholinergic</div>
+                  <div class="go-example">GO:0006915 · apoptotic process</div>
+                  <div class="go-example">GO:0043525 · positive regulation of neuron apoptotic process</div>
+                </div>
+              </div>
+              <div class="go-card go-card--mf" data-abbr="MF">
+                <div class="go-card__tag" style="color:var(--amber);">Molecular Function (MF)</div>
+                <h4>What activity does it have?</h4>
+                <p>The biochemical activity of a single protein at the molecular level — describing <em>capabilities</em>, independent of context. Usually appears as a verb phrase ("kinase activity") rather than a process.</p>
+                <div class="go-card__examples">
+                  <div class="go-example">GO:0004672 · protein kinase activity</div>
+                  <div class="go-example">GO:0042803 · protein homodimerisation activity</div>
+                  <div class="go-example">GO:0003723 · RNA binding</div>
+                </div>
+              </div>
+              <div class="go-card go-card--cc" data-abbr="CC">
+                <div class="go-card__tag" style="color:var(--lavender);">Cellular Component (CC)</div>
+                <h4>Where in the cell?</h4>
+                <p>The physical location where a protein functions, or the complex to which it belongs. For PPI analysis, CC enrichment (e.g. "postsynaptic density") provides powerful contextual validation that your proteins make biological sense together.</p>
+                <div class="go-card__examples">
+                  <div class="go-example">GO:0014069 · postsynaptic density</div>
+                  <div class="go-example">GO:0005739 · mitochondrion</div>
+                  <div class="go-example">GO:0098794 · postsynapse</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="callout callout--info">
+              <div class="callout__icon">💡</div>
+              <div>
+                <div class="callout__title">Focus on specific child terms, not broad parents</div>
+                <p>Results like "biological regulation" or "metabolic process" are very broad GO parent terms that would be enriched in almost any gene list. Tools like Metascape automatically collapse these using semantic clustering. In g:Profiler, look for terms deep in the hierarchy — specific terms like "positive regulation of MAPK cascade" carry far more interpretive value than "signal transduction".</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.2 The statistics -->
+          <div class="content-section reveal" id="stats">
+            <span class="section-label">// section 3.2</span>
+            <h2>What enrichment analysis actually tests</h2>
+            <p>Enrichment analysis answers: <em>"Is the number of my input proteins annotated to GO term X greater than I would expect if I picked the same number of proteins at random from the genome?"</em></p>
+            <p>The most common test is the <strong>hypergeometric test</strong> (equivalent to Fisher's exact test). The logic:</p>
+
+            <div class="card" style="margin:1.5rem 0;">
+              <svg viewBox="0 0 520 170" width="100%" style="max-height:170px;">
+                <ellipse cx="260" cy="85" rx="220" ry="70" fill="rgba(74,158,255,0.05)" stroke="rgba(74,158,255,0.3)" stroke-width="1.5"/>
+                <text x="55" y="35" fill="#4a9eff" font-size="9.5" font-family="DM Mono">All human genes (N ≈ 20,000)</text>
+                <ellipse cx="185" cy="85" rx="115" ry="52" fill="rgba(245,166,35,0.08)" stroke="rgba(245,166,35,0.4)" stroke-width="1.5"/>
+                <text x="103" y="80" fill="#f5a623" font-size="9" font-family="DM Mono" font-weight="600">GO term X</text>
+                <text x="100" y="94" fill="#f5a623" font-size="8.5" font-family="DM Mono">K = 200 proteins</text>
+                <ellipse cx="335" cy="85" rx="115" ry="52" fill="rgba(0,201,167,0.08)" stroke="rgba(0,201,167,0.4)" stroke-width="1.5"/>
+                <text x="360" y="80" fill="#00c9a7" font-size="9" font-family="DM Mono" font-weight="600">Your gene list</text>
+                <text x="358" y="94" fill="#00c9a7" font-size="8.5" font-family="DM Mono">n = 50 proteins</text>
+                <text x="228" y="82" fill="white" font-size="9.5" font-family="DM Mono" font-weight="700">k=20</text>
+                <text x="220" y="96" fill="rgba(255,255,255,0.5)" font-size="7.5" font-family="DM Mono">overlap</text>
+                <text x="260" y="150" text-anchor="middle" fill="var(--text-muted)" font-size="9" font-family="DM Mono">Expected by chance = (200/20000)×50 = 0.5 &nbsp;|&nbsp; Observed = 20 → extremely significant</text>
+              </svg>
+            </div>
+
+            <div class="formula-box">P(X ≥ k) = Σ [C(K,i) × C(N−K, n−i)] / C(N,n) &nbsp; for i = k to min(K, n)</div>
+            <p style="font-size:0.82rem; color:var(--text-muted); text-align:center;">N = genome size · K = GO term size · n = your gene list · k = observed overlap</p>
+
+            <h3>Multiple testing correction is non-negotiable</h3>
+            <p>Enrichment tests ~43,000 GO terms simultaneously. At p &lt; 0.05 without correction, you'd get ~2,150 false positives. Tools handle this via:</p>
+            <div class="grid-2" style="gap:1rem; margin:1rem 0;">
+              <div class="card">
+                <h4 style="color:var(--teal); margin-bottom:0.5rem;">Benjamini–Hochberg FDR</h4>
+                <p style="font-size:0.85rem;">Controls the proportion of false positives among your significant results. FDR q &lt; 0.05 = up to 5% of reported terms may be false positives. Standard for enrichment analysis. Used by g:Profiler (as q-value), Metascape, and most modern tools.</p>
+              </div>
+              <div class="card">
+                <h4 style="color:var(--amber); margin-bottom:0.5rem;">g:SCS (g:Profiler)</h4>
+                <p style="font-size:0.85rem;">g:Profiler's custom correction method that accounts for the hierarchical structure of GO — child terms aren't truly independent of their parents. Slightly more permissive than BH for very specific terms, but more conservative for broad parent terms. Preferred when using g:Profiler.</p>
+              </div>
+            </div>
+            <div class="callout callout--warn">
+              <div class="callout__icon">⚠️</div>
+              <div>
+                <div class="callout__title">Always report adjusted p-values in papers</div>
+                <p>Report the FDR q-value, not the raw p-value. Many published papers still report uncorrected enrichment p-values — reviewers increasingly flag this. State the correction method in your Methods: <em>"GO enrichment was performed using g:Profiler with g:SCS correction, significance threshold q &lt; 0.05."</em></p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.3 g:Profiler -->
+          <div class="content-section reveal" id="gprofiler">
+            <span class="section-label">// section 3.3</span>
+            <h2>g:Profiler: fast, transparent enrichment</h2>
+            <p><strong>g:Profiler</strong> (biit.cs.ut.ee/gprofiler, Raudvere et al., 2019) is a web tool and R/Python API for gene list enrichment analysis. It tests against GO, KEGG, Reactome, WikiPathways, Human Phenotype Ontology (HPO), and others in one run. It is the fastest and most statistically transparent of the commonly used enrichment tools.</p>
+
+            <div class="walkthrough">
+              <div class="wh"><span>📊</span><h4>Running a g:Profiler analysis on a STRING-derived gene list</h4></div>
+              <div class="ws-list">
+                <div class="ws"><div class="ws__n">1</div><div class="ws__c">
+                  <h4>Export gene list from STRING</h4>
+                  <p>In STRING after building your network: <strong>Exports → Protein names (TSV)</strong>. This gives a plain-text gene symbol list. Also works with gene lists from differential expression, GWAS, or literature curation. g:Profiler accepts symbols, Ensembl IDs, and UniProt accessions.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">2</div><div class="ws__c">
+                  <h4>Paste into g:GOSt</h4>
+                  <p>Go to <code>biit.cs.ut.ee/gprofiler/gost</code>. Paste gene symbols (one per line or space-separated) into the query box. For a multi-list comparison (e.g. hub proteins vs peripheral proteins), enter lists in separate boxes.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">3</div><div class="ws__c">
+                  <h4>Configure settings</h4>
+                  <p>Organism: <em>Homo sapiens</em>. Significance threshold: <strong>g:SCS</strong> at 0.05. Under data sources, check: GO:BP, GO:MF, GO:CC, KEGG, Reactome, and (for neuro research) HP (Human Phenotype Ontology — directly maps enriched genes to disease phenotypes like "Parkinsonism" or "Amyloid deposits").</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">4</div><div class="ws__c">
+                  <h4>Read the Manhattan plot</h4>
+                  <p>Each dot = a significant term, plotted at −log10(q-value). X-axis groups by data source. Hover to see term name and contributing genes. Look for the highest dots within GO:BP — these are your most statistically robust biological process findings.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">5</div><div class="ws__c">
+                  <h4>Export results</h4>
+                  <p>Download as CSV for supplementary data. Include columns: term name, GO ID, p-value, q-value (adjusted), term size, intersection size (overlap with your list), and the gene symbols in the intersection. All of this should appear in your paper's supplementary table.</p>
+                </div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.4 Metascape -->
+          <div class="content-section reveal" id="metascape">
+            <span class="section-label">// section 3.4</span>
+            <h2>Metascape: enrichment integrated with networks</h2>
+            <p><strong>Metascape</strong> (metascape.org, Zhou et al., 2019) goes beyond pure enrichment by combining GO/pathway analysis with PPI network construction from STRING, MCODE complex detection, and automatic semantic clustering. It is the most widely used tool in neuroscience PPI papers because it produces the complete figure panel — enrichment results, network, and functional clusters — in one automated pipeline.</p>
+
+            <div class="walkthrough">
+              <div class="wh"><span>🔬</span><h4>Metascape pipeline — what happens step by step</h4></div>
+              <div class="ws-list">
+                <div class="ws"><div class="ws__n">1</div><div class="ws__c">
+                  <h4>Gene ID mapping</h4>
+                  <p>Metascape maps your input to Entrez Gene IDs. It handles synonyms (e.g. <code>PARK2</code> and <code>PRKN</code> both map correctly). Unmapped genes are flagged — check these. If &gt;20% of your list doesn't map, your gene symbols may use a different nomenclature system. Consider switching to Ensembl IDs.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">2</div><div class="ws__c">
+                  <h4>Enrichment across 40+ databases</h4>
+                  <p>Metascape tests against GO (all three namespaces), KEGG, Reactome, WikiPathways, DisGeNET (disease gene associations), and more. Pre-filter: minimum 3 genes per term, p &lt; 0.01 (uncorrected). Final correction: Benjamini–Hochberg. Only terms surviving both filters appear in results.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">3</div><div class="ws__c">
+                  <h4>Hierarchical clustering of terms</h4>
+                  <p>Metascape clusters enriched terms by Kappa similarity (overlap of contributing genes). Related terms are grouped under a parent representative. This prevents your results from being overwhelmed by 80 nearly identical GO terms — instead you see ~8 clean functional themes. This is what gets plotted in the "enrichment network" figure commonly seen in papers.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">4</div><div class="ws__c">
+                  <h4>PPI network + MCODE</h4>
+                  <p>Metascape queries STRING (confidence ≥ 0.7 by default) to build a PPI network of your input proteins. It then runs MCODE to identify densely connected modules. Each module is annotated with the GO terms most enriched in its members. This gives you: "Module 1: APP, PSEN1, BACE1 — enriched for amyloid precursor processing". Immediately interpretable and figure-ready.</p>
+                </div></div>
+                <div class="ws"><div class="ws__n">5</div><div class="ws__c">
+                  <h4>Export to Cytoscape</h4>
+                  <p>Download the network as node/edge tables (CSV) or a Cytoscape session file. This is where Metascape hands off to Cytoscape — the automated clustering becomes a starting point for manually refined, publication-quality figures. Chapter 4 covers this handoff in detail.</p>
+                </div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.5 Comparison -->
+          <div class="content-section reveal" id="comparison">
+            <span class="section-label">// section 3.5</span>
+            <h2>g:Profiler vs Metascape: when to use which</h2>
+
+            <div class="tool-compare">
+              <div class="tool-card">
+                <div class="tool-card__logo" style="color:var(--teal);">g:Profiler</div>
+                <div class="tool-card__meta">biit.cs.ut.ee/gprofiler · Raudvere et al. 2019, NAR</div>
+                <p>Best for clean, transparent enrichment tables. Ideal for supplementary data in papers where statistical reproducibility is critical.</p>
+                <ul class="feature-list">
+                  <li>Very fast (~5 seconds)</li>
+                  <li>Multiple annotation databases simultaneously</li>
+                  <li>Ordered gene list (GSEA-style) analysis</li>
+                  <li>R/Python API (gprofiler2) for reproducible scripts</li>
+                  <li>Fully documented statistical methods</li>
+                  <li class="warn">No built-in network visualisation</li>
+                  <li class="warn">No complex/module detection</li>
+                </ul>
+              </div>
+              <div class="tool-card">
+                <div class="tool-card__logo" style="color:var(--amber);">Metascape</div>
+                <div class="tool-card__meta">metascape.org · Zhou et al. 2019, Nat. Commun.</div>
+                <p>Best for producing full figure panels. Enrichment + PPI network + MCODE clusters all in one pipeline, exportable to Cytoscape.</p>
+                <ul class="feature-list">
+                  <li>Enrichment + network + MCODE in one tool</li>
+                  <li>Automatic semantic clustering of terms</li>
+                  <li>Multi-gene-list comparison analysis</li>
+                  <li>Direct Cytoscape export</li>
+                  <li>DisGeNET disease annotation built-in</li>
+                  <li class="warn">Less transparent statistics than g:Profiler</li>
+                  <li class="warn">Slower (several minutes for large lists)</li>
+                  <li class="warn">No programmatic API</li>
+                </ul>
+              </div>
+            </div>
+
+            <div class="callout callout--key">
+              <div class="callout__icon">🔑</div>
+              <div>
+                <div class="callout__title">The approach used in most published neuroscience PPI papers</div>
+                <p>Use <strong>g:Profiler</strong> for the formal supplementary enrichment table (reproducible, citable statistics) and <strong>Metascape</strong> to generate the main-text network/cluster figure. This gives reviewers the rigour of g:Profiler's documented methods, plus the visual appeal and integrative analysis of Metascape's pipeline.</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- 3.6 Interpreting results -->
+          <div class="content-section reveal" id="interpreting">
+            <span class="section-label">// section 3.6</span>
+            <h2>Interpreting enrichment results: a worked example</h2>
+            <p>Suppose you run Metascape on the Alzheimer's-relevant protein set: APP, PSEN1, BACE1, MAPT, CLU, BIN1, APOE, CDK5, GSK3B. Here are typical results and what they mean:</p>
+
+            <div style="margin:1.5rem 0;">
+              <div class="result-item">
+                <div>
+                  <div class="result-item__term">amyloid precursor protein metabolic process</div>
+                  <p style="font-size:0.8rem; color:var(--text-muted);">GO:0042982 · Biological Process</p>
+                  <div class="result-item__stats">
+                    <span class="rs rs-p">q = 2.3×10⁻⁸</span>
+                    <span class="rs rs-g">7/9 input genes</span>
+                    <span class="rs rs-r">Gene ratio: 77.8%</span>
+                  </div>
+                  <p style="font-size:0.83rem; margin-top:0.5rem; color:var(--text-secondary);">✅ Expected and validating. You specifically curated an APP-related protein set, so this result confirms your input is biologically coherent. The very low q-value and high gene ratio mean this enrichment is robust, not a fringe result.</p>
+                </div>
+              </div>
+
+              <div class="result-item">
+                <div>
+                  <div class="result-item__term">regulation of neuron apoptotic process</div>
+                  <p style="font-size:0.8rem; color:var(--text-muted);">GO:0043523 · Biological Process</p>
+                  <div class="result-item__stats">
+                    <span class="rs rs-p">q = 4.1×10⁻⁵</span>
+                    <span class="rs rs-g">5/9 input genes</span>
+                    <span class="rs rs-r">Gene ratio: 55.6%</span>
+                  </div>
+                  <p style="font-size:0.83rem; margin-top:0.5rem; color:var(--text-secondary);">✅ Biologically informative. This isn't obvious from looking at the individual proteins — it emerges from the network. Tau, GSK3β, CDK5, APOE, and APP are all connected to neuronal survival decisions. This is the kind of insight enrichment analysis is designed to surface.</p>
+                </div>
+              </div>
+
+              <div class="result-item">
+                <div>
+                  <div class="result-item__term">biological regulation</div>
+                  <p style="font-size:0.8rem; color:var(--text-muted);">GO:0065007 · Biological Process (broad parent)</p>
+                  <div class="result-item__stats">
+                    <span class="rs rs-p">q = 0.003</span>
+                    <span class="rs rs-g">9/9 input genes</span>
+                    <span class="rs rs-r">Gene ratio: 100%</span>
+                  </div>
+                  <p style="font-size:0.83rem; margin-top:0.5rem; color:var(--text-secondary);">⚠️ Uninformative broad term. Almost any gene list will enrich "biological regulation". Metascape's term clustering typically collapses these. In g:Profiler, this would appear but should be deprioritised in your interpretation. Don't include broad parent terms like this in your paper's discussion of findings.</p>
+                </div>
+              </div>
+
+              <div class="result-item">
+                <div>
+                  <div class="result-item__term">response to oxidative stress</div>
+                  <p style="font-size:0.8rem; color:var(--text-muted);">GO:0006979 · Biological Process</p>
+                  <div class="result-item__stats">
+                    <span class="rs rs-p">q = 0.008</span>
+                    <span class="rs rs-g">3/9 input genes</span>
+                    <span class="rs rs-r">Gene ratio: 33.3%</span>
+                  </div>
+                  <p style="font-size:0.83rem; margin-top:0.5rem; color:var(--text-secondary);">🔍 Potentially interesting, warrants scrutiny. Only 3 genes drive this enrichment. Check which genes: CLU, APOE, and APP all have literature links to oxidative stress, so this is plausible. But the small overlap means this result is less robust. Report it as a trend, not a firm conclusion, and note the contributing genes explicitly.</p>
+                </div>
+              </div>
+            </div>
+
+            <h3>Common misinterpretation to avoid</h3>
+            <div class="accordion reveal">
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  "Our proteins are enriched for X — therefore they function in X"
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p>Enrichment analysis tells you what annotations are over-represented, not what the proteins necessarily do in your specific biological context. A set of synaptic proteins enriched for "positive regulation of cell proliferation" doesn't mean these proteins are proliferating — it means they share annotation overlap with proliferation-related GO terms, possibly because they regulate signalling pathways active in both contexts. Always interpret enrichment results in the context of your specific biological question and the existing literature.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  Treating enrichment results as mechanistic explanations
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p>Enrichment analysis is hypothesis-generating, not hypothesis-confirming. Finding that your AD protein set is enriched for "tau protein binding" (GO:0048156) is an interesting observation that directs further experimental investigation — it doesn't prove that all your proteins physically bind tau in vivo. The interpretation should be: "These results suggest that [processes] may be relevant, which warrants experimental validation." This framing is both accurate and acceptable to reviewers.</p>
+                </div></div>
+              </div>
+              <div class="accordion__item">
+                <button class="accordion__trigger" aria-expanded="false">
+                  Using different background gene sets without disclosure
+                  <svg class="accordion__icon" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>
+                </button>
+                <div class="accordion__body"><div class="accordion__body-inner">
+                  <p>The hypergeometric test's p-value depends critically on the background set (N in the formula). If your input proteins came from an RNA-seq experiment on neurons, the appropriate background is "all genes expressed in neurons", not "all human genes". Using the wrong background inflates or deflates enrichment statistics. g:Profiler allows custom background upload. Always state the background used in your Methods section. This is one of the most common methodological flaws flagged by reviewers of bioinformatics studies.</p>
+                </div></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chapter nav -->
+          <div class="reveal" style="display:flex; justify-content:space-between; align-items:center; padding:2rem 0; border-top:1px solid var(--border); margin-top:2rem;">
+            <a href="02-databases.html" class="btn btn--ghost">
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+              Chapter 2: Databases
+            </a>
+            <a href="04-network-analysis.html" class="btn btn--primary">
+              Chapter 4: Network Analysis
+              <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
+          </div>
+        </div>
+
+        <aside>
+          <nav class="toc" aria-label="Table of contents">
+            <div class="toc__title">In this chapter</div>
+            <ul class="toc__list">
+              <li><a href="#go">3.1 Gene Ontology</a></li>
+              <li><a href="#stats">3.2 The statistics</a></li>
+              <li><a href="#gprofiler">3.3 g:Profiler</a></li>
+              <li><a href="#metascape">3.4 Metascape</a></li>
+              <li><a href="#comparison">3.5 Comparison</a></li>
+              <li><a href="#interpreting">3.6 Interpretation</a></li>
+            </ul>
+          </nav>
+        </aside>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer__inner">
+        <p class="footer__copy">PPI Guidebook · Chapter 3: GO &amp; Enrichment Analysis</p>
+        <ul class="footer__links">
+          <li><a href="index.html">Home</a></li>
+          <li><a href="04-network-analysis.html">Next: Network Analysis →</a></li>
+          <li><a href="07-references.html">References</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script src="assets/js/nav.js"></script>
+  <script src="assets/js/interactive.js"></script>
+</body>
+</html>
